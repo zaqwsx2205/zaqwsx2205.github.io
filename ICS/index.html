@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自由裁剪圖片</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #canvasContainer {
+            position: relative;
+        }
+
+        #imageCanvas {
+            border: 2px solid #000;
+        }
+
+        #selectionBox {
+            position: absolute;
+            border: 2px dashed #FF0000;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+<h2>自由裁剪圖片工具</h2>
+    <input type="file" id="fileInput">
+	<div style="display: flex;">
+		<div id="canvasContainer">
+			<canvas id="imageCanvas"></canvas>
+			<div id="selectionBox"></div>
+		</div>
+		<div style="justify-content: center; align-items: center; display: flex;">
+			<img id="ok_img" src="" />
+		</div>
+	</div>
+    <button id="cropButton">裁剪圖片</button>
+
+    <script>
+        $(document).ready(function () {
+            var canvas = document.getElementById("imageCanvas");
+            var ctx = canvas.getContext("2d");
+            var image = new Image();
+            var selection = {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0
+            };
+
+            image.onload = function () {
+
+                var originalWidth = image.width;
+                var originalHeight = image.height;
+
+                var widthScale = 700 / originalWidth;
+                var heightScale = 500 / originalHeight;
+
+                var scale = Math.min(widthScale, heightScale);
+
+                var newWidth = originalWidth * scale;
+                var newHeight = originalHeight * scale;
+
+                canvas.width = 700;
+                canvas.height = 700;
+
+                var centerX = (canvas.width - newWidth) / 2;
+                var centerY = (canvas.height - newHeight) / 2;
+
+                ctx.drawImage(image, centerX, centerY, newWidth, newHeight);
+
+                $("#selectionBox").css({
+                    width: selection.width + "px",
+                    height: selection.height + "px",
+                    top: selection.y + "px",
+                    left: selection.x + "px"
+                });
+            };
+
+            $("#fileInput").change(function () {
+                var file = this.files[0];
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    image.src = e.target.result;
+                };
+
+                reader.readAsDataURL(file);
+            });
+
+            $("#imageCanvas").mousedown(function (e) {
+                var offsetX = $(this).offset().left;
+                var offsetY = $(this).offset().top;
+
+                var startX = e.pageX - offsetX;
+                var startY = e.pageY - offsetY;
+
+                $(document).mousemove(function (e) {
+                    var width = e.pageX - offsetX - startX;
+                    var height = e.pageY - offsetY - startY;
+
+                    selection.x = Math.min(startX, startX + width);
+                    selection.y = Math.min(startY, startY + height);
+                    selection.width = Math.abs(width);
+                    selection.height = Math.abs(height);
+
+                    var $selectionBox = $("#selectionBox");
+                    $selectionBox.css({
+                        width: selection.width + "px",
+                        height: selection.height + "px",
+                        top: selection.y + "px",
+                        left: selection.x + "px"
+                    });
+                });
+
+                $(document).mouseup(function () {
+                    $(document).off("mousemove");
+                    $(document).off("mouseup");
+                });
+            });
+
+            $("#cropButton").click(function () {
+                var croppedCanvas = document.createElement("canvas");
+                var croppedCtx = croppedCanvas.getContext("2d");
+
+                croppedCanvas.width = selection.width;
+                croppedCanvas.height = selection.height;
+
+                croppedCtx.drawImage(
+                    canvas,
+                    selection.x,
+                    selection.y,
+                    selection.width,
+                    selection.height,
+                    0,
+                    0,
+                    selection.width,
+                    selection.height
+                );
+
+                var croppedImageDataUrl = croppedCanvas.toDataURL("image/jpeg");
+
+                $("#ok_img").attr("src", croppedImageDataUrl);
+            });
+
+            canvas.addEventListener("dragover", function (e) {
+                e.preventDefault();
+            });
+
+            canvas.addEventListener("drop", function (e) {
+                e.preventDefault();
+
+                var file = e.dataTransfer.files[0];
+                var reader = new FileReader();
+
+                reader.onload = function (event) {
+                    var img = new Image();
+                    img.src = event.target.result;
+
+                    img.onload = function () {
+
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                        var originalWidth = img.width;
+                        var originalHeight = img.height;
+
+                        var widthScale = 700 / originalWidth;
+                        var heightScale = 500 / originalHeight;
+
+                        var scale = Math.min(widthScale, heightScale);
+
+                        var newWidth = originalWidth * scale;
+                        var newHeight = originalHeight * scale;
+
+                        canvas.width = 700;
+                        canvas.height = 700;
+
+                        var centerX = (canvas.width - newWidth) / 2;
+                        var centerY = (canvas.height - newHeight) / 2;
+
+                        ctx.drawImage(img, centerX, centerY, newWidth, newHeight);
+
+                    };
+                };
+
+                reader.readAsDataURL(file);
+            });
+
+        });
+    </script>
+</body>
+
+</html>
