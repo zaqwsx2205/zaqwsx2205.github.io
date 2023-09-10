@@ -7,6 +7,9 @@
     <title>自由裁剪圖片</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
+		html {
+			font-family: "微軟正黑體", Microsoft JhengHei, sans-serif;
+		}
         #canvasContainer {
             position: relative;
         }
@@ -25,6 +28,7 @@
 
 <body>
 <h2>自由裁剪圖片工具</h2>
+<p>選擇檔案、檔案拖曳、Ctrl+V 載入圖片</p>
     <input type="file" id="fileInput">
 	<div style="display: flex;">
 		<div id="canvasContainer">
@@ -119,6 +123,8 @@
                     $(document).off("mouseup");
                 });
             });
+			
+
 
             $("#cropButton").click(function () {
                 var croppedCanvas = document.createElement("canvas");
@@ -185,6 +191,45 @@
                 };
 
                 reader.readAsDataURL(file);
+            });
+			
+			document.addEventListener('paste', function (e) {
+                var items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                if (items) {
+                    for (var i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf("image") !== -1) {
+                            var blob = items[i].getAsFile();
+                            var reader = new FileReader();
+
+                            reader.onload = function (event) {
+                                var img = new Image();
+                                img.src = event.target.result;
+
+                                img.onload = function () {
+                                    var originalWidth = img.width;
+                                    var originalHeight = img.height;
+
+                                    var widthScale = 700 / originalWidth;
+                                    var heightScale = 500 / originalHeight;
+                                    var scale = Math.min(widthScale, heightScale);
+
+                                    var newWidth = originalWidth * scale;
+                                    var newHeight = originalHeight * scale;
+
+                                    canvas.width = 700;
+                                    canvas.height = 500;
+
+                                    var centerX = (canvas.width - newWidth) / 2;
+                                    var centerY = (canvas.height - newHeight) / 2;
+
+                                    ctx.drawImage(img, centerX, centerY, newWidth, newHeight);
+                                };
+                            };
+
+                            reader.readAsDataURL(blob);
+                        }
+                    }
+                }
             });
 
         });
