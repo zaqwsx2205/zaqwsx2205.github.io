@@ -46,6 +46,13 @@
             var canvas = document.getElementById("imageCanvas");
             var ctx = canvas.getContext("2d");
             var image = new Image();
+            var originalWidth = 0;
+            var originalHeight = 0;
+            var newWidth = 0;
+            var newHeight = 0;
+			var centerX = 0;
+			var centerY = 0;
+			
             var selection = {
                 x: 0,
                 y: 0,
@@ -53,34 +60,7 @@
                 height: 0
             };
 
-            image.onload = function () {
 
-                var originalWidth = image.width;
-                var originalHeight = image.height;
-
-                var widthScale = 700 / originalWidth;
-                var heightScale = 500 / originalHeight;
-
-                var scale = Math.min(widthScale, heightScale);
-
-                var newWidth = originalWidth * scale;
-                var newHeight = originalHeight * scale;
-
-                canvas.width = 700;
-                canvas.height = 700;
-
-                var centerX = (canvas.width - newWidth) / 2;
-                var centerY = (canvas.height - newHeight) / 2;
-
-                ctx.drawImage(image, centerX, centerY, newWidth, newHeight);
-
-                $("#selectionBox").css({
-                    width: selection.width + "px",
-                    height: selection.height + "px",
-                    top: selection.y + "px",
-                    left: selection.x + "px"
-                });
-            };
 
             $("#fileInput").change(function () {
                 var file = this.files[0];
@@ -92,7 +72,8 @@
 
                 reader.readAsDataURL(file);
             });
-
+			
+			
             $("#imageCanvas").mousedown(function (e) {
                 var offsetX = $(this).offset().left;
                 var offsetY = $(this).offset().top;
@@ -125,31 +106,6 @@
             });
 			
 
-
-            $("#cropButton").click(function () {
-                var croppedCanvas = document.createElement("canvas");
-                var croppedCtx = croppedCanvas.getContext("2d");
-
-                croppedCanvas.width = selection.width;
-                croppedCanvas.height = selection.height;
-
-                croppedCtx.drawImage(
-                    canvas,
-                    selection.x,
-                    selection.y,
-                    selection.width,
-                    selection.height,
-                    0,
-                    0,
-                    selection.width,
-                    selection.height
-                );
-
-                var croppedImageDataUrl = croppedCanvas.toDataURL("image/jpeg");
-
-                $("#ok_img").attr("src", croppedImageDataUrl);
-            });
-
             canvas.addEventListener("dragover", function (e) {
                 e.preventDefault();
             });
@@ -161,33 +117,7 @@
                 var reader = new FileReader();
 
                 reader.onload = function (event) {
-                    var img = new Image();
-                    img.src = event.target.result;
-
-                    img.onload = function () {
-
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                        var originalWidth = img.width;
-                        var originalHeight = img.height;
-
-                        var widthScale = 700 / originalWidth;
-                        var heightScale = 500 / originalHeight;
-
-                        var scale = Math.min(widthScale, heightScale);
-
-                        var newWidth = originalWidth * scale;
-                        var newHeight = originalHeight * scale;
-
-                        canvas.width = 700;
-                        canvas.height = 700;
-
-                        var centerX = (canvas.width - newWidth) / 2;
-                        var centerY = (canvas.height - newHeight) / 2;
-
-                        ctx.drawImage(img, centerX, centerY, newWidth, newHeight);
-
-                    };
+                    image.src = event.target.result;
                 };
 
                 reader.readAsDataURL(file);
@@ -202,28 +132,7 @@
                             var reader = new FileReader();
 
                             reader.onload = function (event) {
-                                var img = new Image();
-                                img.src = event.target.result;
-
-                                img.onload = function () {
-                                    var originalWidth = img.width;
-                                    var originalHeight = img.height;
-
-                                    var widthScale = 700 / originalWidth;
-                                    var heightScale = 500 / originalHeight;
-                                    var scale = Math.min(widthScale, heightScale);
-
-                                    var newWidth = originalWidth * scale;
-                                    var newHeight = originalHeight * scale;
-
-                                    canvas.width = 700;
-                                    canvas.height = 500;
-
-                                    var centerX = (canvas.width - newWidth) / 2;
-                                    var centerY = (canvas.height - newHeight) / 2;
-
-                                    ctx.drawImage(img, centerX, centerY, newWidth, newHeight);
-                                };
+                                image.src = event.target.result;
                             };
 
                             reader.readAsDataURL(blob);
@@ -231,6 +140,62 @@
                     }
                 }
             });
+			
+            $("#cropButton").click(function () {
+				var croppedCanvas = document.createElement("canvas");
+                var croppedCtx = croppedCanvas.getContext("2d");
+
+                croppedCanvas.width = selection.width * (originalWidth / newWidth);
+                croppedCanvas.height = selection.height * (originalHeight / newHeight);
+				
+				croppedCtx.drawImage(
+					image,
+					selection.x * (originalWidth / newWidth) - centerX * (originalWidth / newWidth),
+					selection.y * (originalHeight / newHeight) - centerY * (originalHeight / newHeight),
+					selection.width * (originalWidth / newWidth),
+					selection.height * (originalHeight / newHeight),
+					0,
+					0,
+					selection.width * (originalWidth / newWidth),
+					selection.height * (originalHeight / newHeight)
+				);
+				
+
+                var croppedImageDataUrl = croppedCanvas.toDataURL("image/jpeg", 1.0);
+
+                $("#ok_img").attr("src", croppedImageDataUrl);
+            });
+			
+			
+            image.onload = function () {
+
+                originalWidth = image.width;
+                originalHeight = image.height;
+
+                var widthScale = 700 / originalWidth;
+                var heightScale = 500 / originalHeight;
+
+                var scale = Math.min(widthScale, heightScale);
+
+                newWidth = originalWidth * scale;
+                newHeight = originalHeight * scale;
+
+                canvas.width = 700;
+                canvas.height = 700;
+
+                centerX = (canvas.width - newWidth) / 2;
+                centerY = (canvas.height - newHeight) / 2;
+				
+               ctx.drawImage(image, centerX, centerY, newWidth, newHeight);
+				
+                $("#selectionBox").css({
+                    width: selection.width + "px",
+                    height: selection.height + "px",
+                    top: selection.y + "px",
+                    left: selection.x + "px"
+                });
+            };
+			
 
         });
     </script>
