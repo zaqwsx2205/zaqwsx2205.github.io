@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div id="t1">點擊</div>
+</body>
+<script>
+
+    $("#target").on("click", async function () {
+
+        const challenge = new Uint8Array(32);
+        window.crypto.getRandomValues(challenge);
+
+        const userID = 'Kosv9fPtkDoh4Oz7Yq/pVgWHS8HhdlCto5cR0aBoVMw=';
+        const id = Uint8Array.from(window.atob(userID), c => c.charCodeAt(0));
+
+        const publicKeyCredentialCreationOptions = {
+            challenge,
+            rp: {
+                name: "Tech Bridge",
+                id: "zaqwsx2205.github.io",
+            },
+            user: {
+                id,
+                name: "zaqwsx2205@gmail.com",
+                displayName: "zaqwsx2205",
+            },
+            pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+            authenticatorSelection: {
+                authenticatorAttachment: "platform",
+            },
+            timeout: 60000,
+            attestation: "direct"
+        };
+
+
+        const credential = await navigator.credentials.create({
+            publicKey: publicKeyCredentialCreationOptions
+        });
+
+        console.log(credential);
+    });
+
+    $(document).ready(function () {
+
+
+
+    });
+</script>
+</html>
