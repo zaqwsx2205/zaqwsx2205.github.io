@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web Authentication</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.5/base64.min.js"></script>
     <script src="./helpers.js"></script>
     <style>
 
@@ -14,8 +15,8 @@
 
 <body>
     <div id="target1">指紋辨識點擊註冊</div>
-    <div id="target2">指紋辨識點擊登入</div>
 
+    <div id="target2">指紋辨識點擊登入</div>
 </body>
 
 <script type="module">
@@ -34,8 +35,7 @@
         const publicKeyCredentialCreationOptions = {
             challenge,
             rp: {
-                name: "zaqwsx2205",
-                id: "zaqwsx2205.github.io",
+                name: "localhost",
             },
             user: {
                 id,
@@ -51,45 +51,35 @@
         };
 
 
-        const credential = await navigator.credentials.create({
+        await navigator.credentials.create({
             publicKey: publicKeyCredentialCreationOptions
+        }).then((e) => {
+            console.log(e);
+            console.log(e);
+
+            const utf8Decoder = new TextDecoder('utf-8');
+            const decodedClientData = utf8Decoder.decode(e.response.clientDataJSON)
+            const clientDataObj = JSON.parse(decodedClientData);
+            console.log(clientDataObj);
+            $("#text1").append(clientDataObj);
+
+            const decodedAttestationObject = decode(new Uint8Array(e.response.attestationObject));
+            console.log(decodedAttestationObject);
+            $("#text1").append(decodedAttestationObject);
+
+
+            let authData = parseAuthData(decodedAttestationObject.authData);
+            console.log('AuthData: ', authData);
+            $("#text1").append(authData);
+
+            console.log('credentialId : ', Base64.encode(authData.credID));
+            console.log('publicKeyBytes  : ', Base64.encode(authData.COSEPublicKey));
+            console.log('AAGUID: ', Base64.encode(authData.aaguid));
+            console.log('PublicKey', decode(new Uint8Array(authData.COSEPublicKey.buffer)));
+            console.log('PublicKey', Base64.encode(authData.COSEPublicKey.buffer));
+
+            credentialId = authData.credID;
         });
-
-        console.log(credential);
-
-
-        const utf8Decoder = new TextDecoder('utf-8');
-        const decodedClientData = utf8Decoder.decode(credential.response.clientDataJSON)
-        // parse the string as an object
-        const clientDataObj = JSON.parse(decodedClientData);
-        console.log(clientDataObj);
-
-        const decodedAttestationObject = decode(new Uint8Array(credential.response.attestationObject));
-        console.log(decodedAttestationObject);
-
-
-        let authData = parseAuthData(decodedAttestationObject.authData);
-        console.log('AuthData: ', authData);
-        console.log('credentialId : ', authData.credID);
-        console.log('publicKeyBytes  : ', authData.COSEPublicKey);
-        console.log('AAGUID: ', authData.aaguid);
-        console.log('PublicKey', decode(new Uint8Array(authData.COSEPublicKey.buffer)));
-
-        credentialId = authData.credID;
-
-
-
-        /*const { authData } = decodedAttestationObject;
-        // get the credential ID
-        const credentialId = authData.slice(55, credentialIdLength);
-        console.log(credentialId);
-        // get the public key object
-        const publicKeyBytes = authData.slice(55 + credentialIdLength);
-        console.log(publicKeyBytes);
-        // the publicKeyBytes are encoded again as CBOR
-        const publicKeyObject = decode(publicKeyBytes.buffer);
-        console.log(publicKeyObject);*/
-
     });
 
     $("#target2").on("click", async function () {
@@ -101,7 +91,7 @@
             allowCredentials: [{
                 id: credentialId, // from registration
                 type: 'public-key',
-                //transports: ['usb', 'ble', 'nfc'],
+                transports: ['internal'],
             }],
             timeout: 60000,
         }
@@ -112,10 +102,6 @@
 
         console.log(assertion);
     });
-
-
-
-
 
 </script>
 
