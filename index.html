@@ -13,6 +13,9 @@
 
 <body>
     <div id="target">點擊</div>
+    <div id="log">
+        
+    </div>
 </body>
 <script>
 
@@ -46,6 +49,7 @@
         });
 
         console.log(credential);
+        $("#log").html(credential);
     });
 
     $(document).ready(function () {
