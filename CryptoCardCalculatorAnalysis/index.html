@@ -127,7 +127,7 @@
 
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center gap-1 h-5 text-red-600">
-                        信用卡使用USD匯率
+                        信用卡公告USD匯率
                         <span id="rate-verify-hint" class="text-[10px] text-slate-400 font-normal hidden">(僅供驗算)</span>
                     </label>
                     <div id="wrapper-card-rate" class="input-flex-wrapper flex items-center border border-red-200 bg-red-50/50 rounded-lg px-3 py-2 gap-2 h-[44px]">
@@ -465,8 +465,10 @@
                     $('.mode-1-only').removeClass('hidden-force');
                     $('.mode-2-only').addClass('hidden-force');
                     $('#section-fees').show();
-                    $('#result-mode-1').show();
-                    $('#result-mode-2').hide();
+                    
+                    // FIXED: Explicitly handle hidden-force class for results
+                    $('#result-mode-1').removeClass('hidden-force').show();
+                    $('#result-mode-2').addClass('hidden-force').hide();
                 } else {
                     // Styles
                     $('#btn-mode-2').addClass('bg-white text-blue-600 shadow-sm').removeClass('text-blue-200');
@@ -478,8 +480,10 @@
                     $('.mode-2-only').removeClass('hidden-force');
                     $('.mode-1-only').addClass('hidden-force');
                     $('#section-fees').hide();
-                    $('#result-mode-1').hide();
-                    $('#result-mode-2').show();
+                    
+                    // FIXED: Explicitly handle hidden-force class for results
+                    $('#result-mode-1').addClass('hidden-force').hide();
+                    $('#result-mode-2').removeClass('hidden-force').show();
                 }
                 calculate();
             }
@@ -646,7 +650,17 @@
 
                 } else {
                     // Mode 2
-                    const usdToSpend = val / cardSellRate;
+                    // Fix: Use USD input as anchor if available to avoid jumping values when rate changes
+                    const usdInputVal = parseNum($('#input-usd-convert').val());
+                    let usdToSpend = 0;
+                    
+                    // Logic: If user is typing in USD box, that's the source of truth.
+                    // But here we rely on 'val' which comes from the TWD box (synced).
+                    // To ensure stability during rate changes, we trust the logic in 'input' event listener to sync TWD box correctly.
+                    
+                    // Use standard calculation based on TWD input (which is synced from USD input if that was last touched)
+                    usdToSpend = val / cardSellRate;
+
                     const usdWithFee = usdToSpend * (1 + feePct/100);
                     const cryptoNeeded = usdWithFee * (1 + bufferPct/100);
                     const twdNeeded = cryptoNeeded * exBuyRate;
@@ -676,6 +690,10 @@
                 if(mode === 'twd_to_usd') $('#input-val-m1').val(initParams.iv);
                 else {
                      $('#input-val-m2').val(initParams.iv);
+                     // Initial Sync for Mode 2
+                     const rate = parseNum(initParams.icr) || parseNum(initParams.ir) || 1;
+                     const usdVal = parseNum(initParams.iv) / rate;
+                     $('#input-usd-convert').val(cleanFloat(usdVal));
                 }
             }
             if (initParams.up) $('#input-usd-paid').val(initParams.up);
@@ -703,12 +721,22 @@
                 // Handle Mode 2 sync
                 if (mode === 'usd_to_twd') {
                     const cardSellRate = parseNum($('#input-card-rate').val()) || parseNum($('#input-ex-rate').val()) || 1;
+                    
                     if (this.id === 'input-usd-convert') {
+                        // User typing in USD -> update TWD
                         const usdVal = parseNum($(this).val());
                         $('#input-val-m2').val(cleanFloat(usdVal * cardSellRate));
                     } else if (this.id === 'input-val-m2') {
+                        // User typing in TWD -> update USD
                          const twdVal = parseNum($(this).val());
                          $('#input-usd-convert').val(cleanFloat(twdVal / cardSellRate));
+                    } else if (this.id === 'input-card-rate' || this.id === 'input-ex-rate') {
+                        // User changing Rate -> Update TWD (Fix: anchor to USD amount)
+                        // If we don't do this, TWD stays constant and USD changes, which is annoying for reserve calculation.
+                        const currentUsd = parseNum($('#input-usd-convert').val());
+                        if (currentUsd > 0) {
+                             $('#input-val-m2').val(cleanFloat(currentUsd * cardSellRate));
+                        }
                     }
                 }
                 calculate();
