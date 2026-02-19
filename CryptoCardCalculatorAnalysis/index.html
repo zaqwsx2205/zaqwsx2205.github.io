@@ -292,7 +292,7 @@
                     公式：<span id="formula-m1-base-est" class="font-mono"></span>
                 </div>
 
-                <div class="flex justify-between font-bold">
+                <div class="flex justify-between font-bold mt-1">
                     <span>差異 (實際基礎額 - 估算交易額)</span>
                     <span id="res-m1-delta" class="font-mono text-emerald-500">0.00 USD</span>
                 </div>
@@ -623,23 +623,18 @@ $(document).ready(function() {
             // Verify
             const baseUSD_est = (val > 0 && cardSellRate > 0) ? (val / cardSellRate) : 0;
             const deltaUSD = hasUsdInput ? (cashbackBase - baseUSD_est) : 0;
-
-            // ✅ 新增：產生「實際基礎額」公式字串
+            
             let formulaBaseActual = '';
             if (hasUsdInput) {
               if (usdIncludesFee) {
-                // 實際基礎額 = 實際刷卡USD ÷ (1 + 手續費率)
                 formulaBaseActual = `${formatNum(usdPaidInput)} ÷ (1 + ${formatNum(feePct)}%)`;
               } else {
-                // 實際基礎額 = 實際刷卡USD
                 formulaBaseActual = `${formatNum(usdPaidInput)}`;
               }
             } else {
-              // 沒輸入刷卡USD時，用商品/匯率推估（你若不想顯示也可留空）
               formulaBaseActual = `${formatNum(val, 0)} ÷ ${formatNum(cardSellRate)}`;
             }
             
-            // ✅ 新增：產生「估算交易額」公式字串（永遠是 商品 ÷ 公告匯率）
             const formulaBaseEst = `${formatNum(val, 0)} ÷ ${formatNum(cardSellRate)}`;
 
             if (hasUsdInput && cardSellRate > 0 && val > 0) {
@@ -647,7 +642,6 @@ $(document).ready(function() {
                 $('#res-m1-base-actual').text('$' + formatNum(cashbackBase));
                 $('#res-m1-base-est').text('$' + formatNum(baseUSD_est));
             
-                // ✅ 新增：把公式寫到 UI
                 $('#formula-m1-base-actual').text(formulaBaseActual);
                 $('#formula-m1-base-est').text(formulaBaseEst);
             
@@ -656,7 +650,6 @@ $(document).ready(function() {
                 $('#res-m1-delta').text(`${deltaSign}${formatNum(deltaUSD)} USD`).attr('class', `font-mono ${deltaColor}`);
             } else {
                 $('#block-verify').addClass('hidden');
-                // ✅ 新增：避免殘留
                 $('#formula-m1-base-actual').text('');
                 $('#formula-m1-base-est').text('');
             }
@@ -876,8 +869,7 @@ $(document).ready(function() {
             if (input.classList.contains('text-right')) valDiv.style.justifyContent = 'flex-end';
             if (input.classList.contains('text-blue-700')) valDiv.style.color = '#1d4ed8';
             if (input.classList.contains('text-red-700')) valDiv.style.color = '#b91c1c';
-
-            // wrapper 轉成「文字列」樣式（避免框線）
+            
             const wrapperBackup = {
                 wrapper,
                 style: {
@@ -933,10 +925,9 @@ $(document).ready(function() {
 
       try {
         await document.fonts.ready;
-
-        // ✅ 開啟 capture 模式
+          
         card.classList.add('capture-mode');
-
+          
         const dataUrl = await modernScreenshot.domToPng(card, {
           backgroundColor: '#ffffff',
           scale: 3,
@@ -956,7 +947,6 @@ $(document).ready(function() {
       } catch (e) {
         console.error(e);
       } finally {
-        // ✅ 還原
         card.classList.remove('capture-mode');
       }
     }
@@ -964,8 +954,7 @@ $(document).ready(function() {
 
     $('#btn-download').click(() => handleCapture('download'));
     $('#btn-copy-img').click(() => handleCapture('copy'));
-
-    // Clipboard 支援檢查（跟你原本一致）
+    
     if (typeof ClipboardItem !== 'undefined' && !!navigator.clipboard && !!navigator.clipboard.write && window.location.protocol !== 'blob:') {
         // supported
     } else {
