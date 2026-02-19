@@ -405,7 +405,7 @@
 
             <button id="btn-copy-link" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 py-3 rounded-xl text-sm font-bold transition-all border border-blue-200 active:scale-95">
                 <i id="icon-copy-link" data-lucide="share-2" class="w-4 h-4"></i>
-                <span id="text-copy-link">複製包含說明的分享連結</span>
+                <span id="text-copy-link">分享連結</span>
             </button>
         </div>
 
@@ -917,7 +917,7 @@ $(document).ready(function() {
             
             setTimeout(() => {
                 $('#icon-copy-link').replaceWith('<i id="icon-copy-link" data-lucide="share-2" class="w-4 h-4"></i>');
-                $('#text-copy-link').text('複製包含說明的分享連結');
+                $('#text-copy-link').text('分享連結');
                 lucide.createIcons();
             }, 2500);
         } catch(e){
