@@ -118,7 +118,7 @@
 
                 <!-- Rates Grid -->
                 <div class="space-y-1.5">
-                    <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center h-5 text-blue-600">交易所買入匯率</label>
+                    <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center h-5 text-blue-600">交易所買入USD匯率</label>
                     <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
                         <span class="prefix-label currency-label font-bold shrink-0 text-sm text-blue-400">TWD</span>
                         <input type="number" step="any" id="input-ex-rate" placeholder="0" class="w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
@@ -127,7 +127,7 @@
 
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center gap-1 h-5 text-red-600">
-                        卡片扣款匯率
+                        信用卡使用USD匯率
                         <span id="rate-verify-hint" class="text-[10px] text-slate-400 font-normal hidden">(僅供驗算)</span>
                     </label>
                     <div id="wrapper-card-rate" class="input-flex-wrapper flex items-center border border-red-200 bg-red-50/50 rounded-lg px-3 py-2 gap-2 h-[44px]">
@@ -319,7 +319,7 @@
                                 <span>回饋抵銷</span>
                                 <span id="res-decomp-cashback" class="text-emerald-500">-0.0</span>
                             </div>
-                            <span class="text-[9px] text-slate-400 font-normal">（以 <span class="currency-text">TWD</span> 價÷卡片匯率 推算基準USD，僅供解釋）</span>
+                            <span class="text-[9px] text-slate-400 font-normal">（以 <span class="currency-text">TWD</span> 價÷信用卡匯率 推算基準USD，僅供解釋）</span>
                          </div>
                          
                          <div class="flex flex-col justify-end text-right border-l border-slate-100 pl-2">
