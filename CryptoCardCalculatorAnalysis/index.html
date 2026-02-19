@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>加密貨幣卡交易計算機 (多幣別版)</title>
+    <title>加密貨幣卡交易計算機</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -93,7 +93,7 @@
                 <div class="mode-1-only space-y-1.5 col-span-2">
                     <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center h-5">商品價格 (<span class="currency-text">TWD</span>)</label>
                     <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
-                        <span class="prefix-label currency-label text-slate-400 font-bold shrink-0 text-sm">NT$</span>
+                        <span class="prefix-label currency-label text-slate-400 font-bold shrink-0 text-sm">TWD</span>
                         <input type="number" step="any" id="input-val-m1" placeholder="0" class="w-full bg-transparent outline-none font-mono text-lg font-semibold h-full">
                     </div>
                 </div>
@@ -120,7 +120,7 @@
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center h-5 text-blue-600">交易所買入匯率</label>
                     <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
-                        <span class="prefix-label currency-label font-bold shrink-0 text-sm text-blue-400">NT$</span>
+                        <span class="prefix-label currency-label font-bold shrink-0 text-sm text-blue-400">TWD</span>
                         <input type="number" step="any" id="input-ex-rate" placeholder="0" class="w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
                     </div>
                 </div>
@@ -131,7 +131,7 @@
                         <span id="rate-verify-hint" class="text-[10px] text-slate-400 font-normal hidden">(僅供驗算)</span>
                     </label>
                     <div id="wrapper-card-rate" class="input-flex-wrapper flex items-center border border-red-200 bg-red-50/50 rounded-lg px-3 py-2 gap-2 h-[44px]">
-                        <span class="prefix-label currency-label font-bold shrink-0 text-sm text-red-400">NT$</span>
+                        <span class="prefix-label currency-label font-bold shrink-0 text-sm text-red-400">TWD</span>
                         <input type="number" step="any" id="input-card-rate" placeholder="0" class="w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-red-700">
                     </div>
                 </div>
