@@ -22,39 +22,37 @@
 
     <style>
         body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
+		
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+		
         input[type=number] { -moz-appearance: textfield; }
-
-        /* 你原本的：平常隱藏，只在截圖時用 JS 強制顯示 */
+		
         .show-on-capture-block { display: none !important; }
-
-        /* 隱藏元素 Helper */
+		
         .hidden-force { display: none !important; }
-
-        /* 截圖模式：移除 input 外觀 */
+		
         .capture-mode .input-flex-wrapper {
           border: none !important;
           background: transparent !important;
           box-shadow: none !important;
           padding: 0 !important;
         }
-
+		
         .capture-mode .input-flex-wrapper input {
           border: none !important;
           background: transparent !important;
           outline: none !important;
           appearance: none !important;
         }
-
-        /* 讓數值看起來像純文字 */
+		
         .capture-mode .input-flex-wrapper input {
           font-weight: 600;
         }
-
+		
         .capture-mode input {
           caret-color: transparent !important;
         }
-
+		
         .capture-mode {
           border-radius: 0 !important;
           box-shadow: none !important; /* 移除陰影 */
