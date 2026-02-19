@@ -168,7 +168,6 @@
             <div class="space-y-1.5">
                 <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center gap-1 h-5 text-red-600">
                     信用卡公告USD匯率
-                    <span id="rate-verify-hint" class="text-[10px] text-slate-400 font-normal hidden">(僅供驗算)</span>
                 </label>
                 <div id="wrapper-card-rate" class="input-flex-wrapper flex items-center border border-red-200 bg-red-50/50 rounded-lg px-3 py-2 gap-2 h-[44px]">
                     <span class="prefix-label currency-label font-bold shrink-0 text-sm text-red-400">TWD</span>
@@ -268,7 +267,7 @@
                 <div class="flex flex-col">
                     <span class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider">目標購買金額</span>
                     <span id="formula-m2-usd" class="text-[10px] text-orange-600 mt-1 opacity-70 leading-relaxed whitespace-nowrap">
-                        公式: 0 (商品) ÷ 1 (扣款匯率)
+                        公式: 0 (金額) ÷ 1 (信用卡公告匯率)
                     </span>
                 </div>
                 <span id="res-m2-usd-spend" class="text-2xl font-mono font-bold text-slate-800">$0.00</span>
@@ -281,7 +280,7 @@
                     <div class="flex flex-col gap-1">
                         <span class="text-sm text-orange-800 font-bold flex items-center gap-2">最終：建議入金 <span class="currency-text">TWD</span></span>
                         <span id="formula-m2-twd" class="text-xs text-orange-600 opacity-70 whitespace-nowrap">
-                            公式: 0 USD (含 2% Buffer) × 匯率 0
+                            公式: 0 USD (含 2% Buffer) × 交易所買入匯率 0
                         </span>
                     </div>
                 </div>
@@ -585,8 +584,6 @@ $(document).ready(function() {
         const extraHome = feeItems.filter(i => i.currency === 'home' || i.currency === 'TWD').reduce((acc, i) => acc + parseNum(i.amount), 0);
 
         if (mode === 'twd_to_usd') {
-            if (hasUsdInput) $('#rate-verify-hint').removeClass('hidden'); else $('#rate-verify-hint').addClass('hidden');
-
             const step1_displayUSD = hasUsdInput ? usdPaidInput : (val / cardSellRate);
 
             let cashbackBase = 0;
@@ -651,7 +648,7 @@ $(document).ready(function() {
                 $('#formula-m1-base-est').text('');
             }
 
-            $('#formula-m1-billed').text(hasUsdInput ? '依據實際輸入' : `公式: 商品 ÷ 扣款匯率 ${formatNum(cardSellRate)}`);
+            $('#formula-m1-billed').text(hasUsdInput ? '依據實際輸入' : `公式: 商品價格 ÷ 信用卡公告匯率 ${formatNum(cardSellRate)}`);
             $('#res-m1-billed-usd').text('$' + formatNum(step1_displayUSD));
 
             $('#label-m1-fee').text(`+ 手續費 (${hasUsdInput && usdIncludesFee ? "已內含" : formatNum(feePct)+"%"})`).toggleClass('text-slate-400', hasUsdInput && usdIncludesFee);
@@ -716,10 +713,10 @@ $(document).ready(function() {
             const cryptoNeeded = usdWithFee * (1 + bufferPct/100);
             const twdNeeded = cryptoNeeded * exBuyRate;
 
-            $('#formula-m2-usd').text(`公式: ${formatNum(val)} (商品) ÷ ${formatNum(cardSellRate)} (扣款匯率)`);
+            $('#formula-m2-usd').text(`公式: ${formatNum(val)} (金額) ÷ ${formatNum(cardSellRate)} (信用卡公告匯率)`);
             $('#res-m2-usd-spend').text('$' + formatNum(usdToSpend));
 
-            $('#formula-m2-twd').text(`公式: ${formatNum(cryptoNeeded)} USD (含 ${formatNum(bufferPct)}% Buffer) × 匯率 ${formatNum(exBuyRate)}`);
+            $('#formula-m2-twd').text(`公式: ${formatNum(cryptoNeeded)} USD (含 ${formatNum(bufferPct)}% Buffer) × 交易所買入匯率 ${formatNum(exBuyRate)}`);
             $('#res-m2-final-twd').text(formatNum(twdNeeded, 0));
         }
 
