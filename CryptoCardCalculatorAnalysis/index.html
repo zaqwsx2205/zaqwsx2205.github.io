@@ -74,6 +74,7 @@
                 <div class="mode-1-only space-y-1.5 col-span-2">
                     <div class="flex items-center justify-between h-5">
                         <label class="text-xs font-bold text-slate-500 uppercase text-blue-600 whitespace-nowrap flex items-center h-5">實際刷卡金額</label>
+                        <!-- Button needs specific ID for capture styling -->
                         <button id="btn-toggle-fee-include" class="flex items-center gap-1 text-[9px] text-slate-500 hover:text-blue-600 transition-colors" title="切換：扣款金額是否已包含手續費">
                             <i id="icon-fee-check" data-lucide="check-square" class="w-3 h-3 text-blue-500"></i>
                             <span id="text-fee-check">費用內含信用卡手續費</span>
@@ -127,7 +128,7 @@
 
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center gap-1 h-5 text-red-600">
-                        信用卡公告USD匯率
+                        信用卡使用USD匯率
                         <span id="rate-verify-hint" class="text-[10px] text-slate-400 font-normal hidden">(僅供驗算)</span>
                     </label>
                     <div id="wrapper-card-rate" class="input-flex-wrapper flex items-center border border-red-200 bg-red-50/50 rounded-lg px-3 py-2 gap-2 h-[44px]">
@@ -297,7 +298,10 @@
                 <!-- 效益分析 -->
                 <div id="analysis-box" class="analysis-box p-4 bg-white rounded-xl border border-slate-200 flex flex-col gap-3 shadow-sm">
                     <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2 text-sm font-bold text-slate-700"><i data-lucide="activity" class="w-4 h-4 text-blue-500"></i> 效益分析</div>
+                        <div class="flex items-center gap-2 text-sm font-bold text-slate-700">
+                             <i data-lucide="activity" class="w-4 h-4 text-blue-500"></i>
+                             <span>效益分析</span>
+                        </div>
                         <div id="analysis-badge">
                             <!-- JS Generated Badge -->
                         </div>
@@ -319,7 +323,6 @@
                                 <span>回饋抵銷</span>
                                 <span id="res-decomp-cashback" class="text-emerald-500">-0.0</span>
                             </div>
-                            <span class="text-[9px] text-slate-400 font-normal">（以 <span class="currency-text">TWD</span> 價÷信用卡匯率 推算基準USD，僅供解釋）</span>
                          </div>
                          
                          <div class="flex flex-col justify-end text-right border-l border-slate-100 pl-2">
@@ -448,7 +451,6 @@
                 $('.currency-label').text(code);
                 $('.currency-text').text(code);
                 $('#input-currency-code').val(code);
-                // Also update fee dropdown for existing item type match if needed, but mostly visual
                 calculate();
             }
 
@@ -466,7 +468,6 @@
                     $('.mode-2-only').addClass('hidden-force');
                     $('#section-fees').show();
                     
-                    // FIXED: Explicitly handle hidden-force class for results
                     $('#result-mode-1').removeClass('hidden-force').show();
                     $('#result-mode-2').addClass('hidden-force').hide();
                 } else {
@@ -481,7 +482,6 @@
                     $('.mode-1-only').addClass('hidden-force');
                     $('#section-fees').hide();
                     
-                    // FIXED: Explicitly handle hidden-force class for results
                     $('#result-mode-1').addClass('hidden-force').hide();
                     $('#result-mode-2').removeClass('hidden-force').show();
                 }
@@ -495,7 +495,6 @@
                     list.html('<div class="text-center py-4 text-slate-400 text-xs italic">尚無雜費項目</div>');
                 } else {
                     feeItems.forEach(item => {
-                        // Display correct currency code
                         const displayCurr = item.currency === 'home' ? currencyCode : item.currency;
                         const html = `
                             <div class="fee-item-container flex items-center gap-2 bg-white p-3 rounded-lg border border-slate-200 shadow-sm min-h-[44px]">
@@ -536,12 +535,10 @@
                 const feePct = parseNum($('#input-fee').val());
                 const bufferPct = parseNum($('#input-buffer').val());
 
-                // 'home' maps to whatever the current currency is
                 const extraUSD = feeItems.filter(i => i.currency === 'USD').reduce((acc, i) => acc + parseNum(i.amount), 0);
                 const extraHome = feeItems.filter(i => i.currency === 'home' || i.currency === 'TWD').reduce((acc, i) => acc + parseNum(i.amount), 0);
 
                 if (mode === 'twd_to_usd') {
-                    // Update verification hint
                     if (hasUsdInput) $('#rate-verify-hint').removeClass('hidden'); else $('#rate-verify-hint').addClass('hidden');
 
                     const step1_displayUSD = hasUsdInput ? usdPaidInput : (val / cardSellRate);
@@ -584,7 +581,6 @@
                     const baseUSD_est = (val > 0 && cardSellRate > 0) ? (val / cardSellRate) : 0;
                     const deltaUSD = hasUsdInput ? (cashbackBase - baseUSD_est) : 0;
 
-                    // --- Render Mode 1 ---
                     if (hasUsdInput && cardSellRate > 0 && val > 0) {
                         $('#block-verify').removeClass('hidden');
                         $('#res-m1-base-actual').text('$' + formatNum(cashbackBase));
@@ -649,16 +645,8 @@
                     }
 
                 } else {
-                    // Mode 2
-                    // Fix: Use USD input as anchor if available to avoid jumping values when rate changes
                     const usdInputVal = parseNum($('#input-usd-convert').val());
                     let usdToSpend = 0;
-                    
-                    // Logic: If user is typing in USD box, that's the source of truth.
-                    // But here we rely on 'val' which comes from the TWD box (synced).
-                    // To ensure stability during rate changes, we trust the logic in 'input' event listener to sync TWD box correctly.
-                    
-                    // Use standard calculation based on TWD input (which is synced from USD input if that was last touched)
                     usdToSpend = val / cardSellRate;
 
                     const usdWithFee = usdToSpend * (1 + feePct/100);
@@ -690,7 +678,6 @@
                 if(mode === 'twd_to_usd') $('#input-val-m1').val(initParams.iv);
                 else {
                      $('#input-val-m2').val(initParams.iv);
-                     // Initial Sync for Mode 2
                      const rate = parseNum(initParams.icr) || parseNum(initParams.ir) || 1;
                      const usdVal = parseNum(initParams.iv) / rate;
                      $('#input-usd-convert').val(cleanFloat(usdVal));
@@ -703,36 +690,29 @@
             if (initParams.if) $('#input-fee').val(initParams.if);
             if (initParams.bf) $('#input-buffer').val(initParams.bf);
             
-            updateCurrencyUI(); // This calls calculate()
+            updateCurrencyUI(); 
             renderFeeList();
             renderFeeCheck();
             toggleMode(mode);
 
             // Inputs Change
             $('input').on('input', function() {
-                // Currency change
                 if (this.id === 'input-currency-code') {
                     currencyCode = $(this).val().toUpperCase();
                     $('.currency-label').text(currencyCode);
                     $('.currency-text').text(currencyCode);
-                    // No need to call updateCurrencyUI as we are typing
                 }
 
-                // Handle Mode 2 sync
                 if (mode === 'usd_to_twd') {
                     const cardSellRate = parseNum($('#input-card-rate').val()) || parseNum($('#input-ex-rate').val()) || 1;
                     
                     if (this.id === 'input-usd-convert') {
-                        // User typing in USD -> update TWD
                         const usdVal = parseNum($(this).val());
                         $('#input-val-m2').val(cleanFloat(usdVal * cardSellRate));
                     } else if (this.id === 'input-val-m2') {
-                        // User typing in TWD -> update USD
                          const twdVal = parseNum($(this).val());
                          $('#input-usd-convert').val(cleanFloat(twdVal / cardSellRate));
                     } else if (this.id === 'input-card-rate' || this.id === 'input-ex-rate') {
-                        // User changing Rate -> Update TWD (Fix: anchor to USD amount)
-                        // If we don't do this, TWD stays constant and USD changes, which is annoying for reserve calculation.
                         const currentUsd = parseNum($('#input-usd-convert').val());
                         if (currentUsd > 0) {
                              $('#input-val-m2').val(cleanFloat(currentUsd * cardSellRate));
@@ -767,7 +747,6 @@
                 renderFeeList();
             });
             
-            // Clipboard Check
             if (typeof ClipboardItem !== 'undefined' && !!navigator.clipboard && !!navigator.clipboard.write && window.location.protocol !== 'blob:') {
                  // supported
             } else {
@@ -777,7 +756,6 @@
                  $('#btn-copy-link').hide();
             }
 
-            // Copy Link
             $('#btn-copy-link').click(function() {
                 const url = window.location.href;
                 const textArea = document.createElement("textarea");
@@ -803,7 +781,6 @@
                 if (!window.html2canvas) return;
                 const card = document.getElementById('capture-card-root');
 
-                // Wait fonts (basic check)
                 await document.fonts.ready;
 
                 try {
@@ -816,13 +793,66 @@
                             const clonedCard = clonedDoc.getElementById('capture-card-root');
                             if (!clonedCard) return;
 
+                            const luc = window.lucide || lucide;
+
+                            // 依 Tailwind 文字色 class 決定 icon 顏色（至少涵蓋你 badge 會用到的）
+                            const pickColor = (el) => {
+                                const cls = el.className || '';
+                                if (cls.includes('text-emerald-700')) return '#047857';
+                                if (cls.includes('text-red-700')) return '#b91c1c';
+                                if (cls.includes('text-slate-600')) return '#475569';
+                                if (cls.includes('text-blue-500')) return '#3b82f6';
+                                return '#64748b'; // fallback slate-500
+                            };
+
+                            // 從 w-3 / h-3 推尺寸（沒抓到就用 16）
+                            const pickSize = (el) => {
+                                const cls = el.className || '';
+                                if (cls.includes('w-3') || cls.includes('h-3')) return 12;
+                                if (cls.includes('w-4') || cls.includes('h-4')) return 16;
+                                if (cls.includes('w-5') || cls.includes('h-5')) return 20;
+                                if (cls.includes('w-6') || cls.includes('h-6')) return 24;
+                                return 16;
+                            };
+
+                            // ✅ 把 clone 內所有 <i data-lucide="..."> 轉成 <svg>
+                            clonedCard.querySelectorAll('i[data-lucide]').forEach(iEl => {
+                                const name = iEl.getAttribute('data-lucide');
+                                const icon = luc?.icons?.[name];
+                                if (!icon) return;
+
+                                const size = pickSize(iEl);
+                                const svgStr = icon.toSvg({ width: size, height: size });
+
+                                const temp = clonedDoc.createElement('div');
+                                temp.innerHTML = svgStr;
+                                const svg = temp.firstElementChild;
+
+                                const color = pickColor(iEl.parentElement || iEl);
+
+                                svg.setAttribute('width', String(size));
+                                svg.setAttribute('height', String(size));
+                                svg.style.width = `${size}px`;
+                                svg.style.height = `${size}px`;
+                                svg.style.display = 'block';
+                                svg.style.overflow = 'visible';
+                                svg.style.color = color;
+                                svg.style.stroke = color;
+                                svg.setAttribute('stroke', color);
+                                svg.style.strokeWidth = '2';
+                                svg.style.fill = 'none';
+
+                                iEl.replaceWith(svg);
+                            });
+
+
                             clonedCard.style.fontFamily = '"Noto Sans TC", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif';
 
-                            // Fix SVGs
+                            // Fix SVGs (Generic)
                             const svgs = clonedCard.querySelectorAll('svg');
                             svgs.forEach(svg => {
-                                svg.setAttribute('width', '18');
-                                svg.setAttribute('height', '18');
+                                // svg.setAttribute('width', '18');
+                                // svg.setAttribute('height', '18');
                                 const parentStyle = window.getComputedStyle(svg.parentElement);
                                 const color = parentStyle.color && parentStyle.color !== 'rgba(0, 0, 0, 0)' 
                                     ? parentStyle.color 
@@ -832,6 +862,62 @@
                                 svg.setAttribute('stroke', color);
                                 svg.style.display = 'block';
                             });
+
+                            // --- 對齊修正開始 ---
+
+                            // 1. Fix Checkbox Alignment (Top Right)
+                            const toggleBtn = clonedCard.querySelector('#btn-toggle-fee-include');
+                            if (toggleBtn) {
+                                toggleBtn.style.display = 'flex';
+                                toggleBtn.style.alignItems = 'center';
+                                toggleBtn.style.height = '100%'; 
+                                const txt = toggleBtn.querySelector('span'); 
+                                if(txt) txt.style.lineHeight = '1';
+                            }
+
+                            // 2. Fix Analysis Title Alignment (Bottom Left)
+                            const analysisHeader = clonedCard.querySelector('.analysis-box > div:first-child > div:first-child');
+                            if (analysisHeader) {
+                                analysisHeader.style.display = 'flex';
+                                analysisHeader.style.alignItems = 'center';
+                            }
+
+                            // 3. Fix Badge Alignment & Missing Icon (Bottom Right)
+                            const badges = clonedCard.querySelectorAll('.analysis-badge');
+                            badges.forEach(badge => {
+                                // Flex alignment
+                                badge.style.display = 'inline-flex';
+                                badge.style.alignItems = 'center';
+                                badge.style.justifyContent = 'center';
+                                badge.style.gap = '4px';
+
+                                const icon = badge.querySelector('svg');
+                                if (icon) {
+                                    // Force visibility
+                                    icon.style.display = 'block';
+                                    icon.style.overflow = 'visible';
+                                    
+                                    // Set dimensions (w-3 h-3 = 12px)
+                                    // icon.setAttribute('width', '12');
+                                    // icon.setAttribute('height', '12');
+                                    // icon.style.width = '12px';
+                                    // icon.style.height = '12px';
+                                    
+                                    // Force Stroke Color based on parent class
+                                    let color = '#475569'; // Default slate-600
+                                    if (badge.classList.contains('text-emerald-700')) {
+                                        color = '#047857';
+                                    } else if (badge.classList.contains('text-red-700')) {
+                                        color = '#b91c1c';
+                                    }
+                                    
+                                    icon.style.stroke = color;
+                                    icon.setAttribute('stroke', color);
+                                    icon.style.color = color;
+                                    icon.style.strokeWidth = '2';
+                                }
+                            });
+                            // --- 對齊修正結束 ---
 
                             // Inputs to Text
                             const wrappers = clonedCard.querySelectorAll('.input-flex-wrapper');
@@ -861,8 +947,6 @@
                                     if (input.classList.contains('text-right')) valDiv.style.justifyContent = 'flex-end';
                                     if (input.classList.contains('text-blue-700')) valDiv.style.color = '#1d4ed8';
                                     if (input.classList.contains('text-red-700')) valDiv.style.color = '#b91c1c';
-                                    // Handle currency input specially if it's there? No, capture hides it.
-                                    
                                     input.parentNode.replaceChild(valDiv, input);
                                 }
                                 
@@ -881,19 +965,6 @@
                                     suffix.style.lineHeight = '1';
                                 }
                             });
-
-                             // Badges
-                             const analysisBadges = clonedCard.querySelectorAll('.analysis-badge');
-                             analysisBadges.forEach(badge => {
-                                badge.style.display = 'inline-flex';
-                                badge.style.alignItems = 'center';
-                                badge.style.justifyContent = 'center';
-                                badge.style.height = '28px';
-                                badge.style.lineHeight = '1';
-                                badge.style.whiteSpace = 'nowrap';
-                                const icon = badge.querySelector('svg');
-                                if(icon) { icon.style.display = 'block'; icon.style.marginBottom = '0'; }
-                             });
                         }
                     });
 
