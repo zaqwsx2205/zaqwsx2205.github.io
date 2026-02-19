@@ -692,14 +692,27 @@ $(document).ready(function() {
                 badgeHtml = `<span class="analysis-badge px-2 rounded text-xs font-bold bg-red-100 text-red-700 inline-flex items-center gap-1 leading-none h-7"><i data-lucide="trending-up" class="w-3 h-3"></i> 多付 ${formatNum(absDiff)} ${currencyCode}</span>`;
             }
             $('#analysis-badge').html(badgeHtml);
+            
+            const baseUSD_forDecomp = (val > 0 && cardSellRate > 0) ? (val / cardSellRate) : 0;
+            const fxDiffTwd = baseUSD_forDecomp * (exBuyRate - cardSellRate);
+            const feeTwd = baseUSD_forDecomp * (feePct / 100) * exBuyRate;
+            const cashbackTwd = baseUSD_forDecomp * (dPct / 100) * exBuyRate;
 
-            if (rateBaseUSD > 0) {
-                $('#decomp-box').removeClass('hidden');
-                $('#res-implied-rate').text(formatNum(impliedRate, 3));
-                $('#res-effective-rate').text(formatNum(effectiveRate, 3));
-            } else {
-                $('#decomp-box').addClass('hidden');
-            }
+			if (baseUSD_forDecomp > 0 && exBuyRate > 0 && cardSellRate > 0) {
+				$('#decomp-box').removeClass('hidden');
+
+				const fxSign = fxDiffTwd > 0 ? '+' : '';
+				const fxClass = fxDiffTwd > 0 ? 'text-red-500' : 'text-emerald-500';
+				
+				$('#res-decomp-fx').text(`${fxSign}${formatNum(fxDiffTwd, 1)}`).attr('class', fxClass);
+				$('#res-decomp-fee').text('+' + formatNum(feeTwd, 1)).attr('class', 'text-red-500');
+				$('#res-decomp-cashback').text('-' + formatNum(cashbackTwd, 1)).attr('class', 'text-emerald-500');
+				$('#res-implied-rate').text(formatNum(impliedRate, 3));
+				$('#res-effective-rate').text(formatNum(effectiveRate, 3));
+			} else {
+				$('#decomp-box').addClass('hidden');
+			}
+
         } else {
             const usdToSpend = val / cardSellRate;
             const usdWithFee = usdToSpend * (1 + feePct/100);
