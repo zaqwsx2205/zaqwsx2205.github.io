@@ -96,7 +96,7 @@
         </div>
     </div>
 
-    <div class="p-6 space-y-6">
+    <div class="p-6 flex flex-col gap-6">
 
         <!-- Shared Link Notice (預設隱藏，由 JS 控制顯示) -->
         <div id="shared-link-notice" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-4 hide-on-capture flex items-start gap-3 shadow-sm">
@@ -264,7 +264,7 @@
             </div>
         </div>
 
-        <div class="h-px bg-slate-100"></div>
+        <div class="w-full h-px bg-slate-100 shrink-0"></div>
 
         <!-- RESULTS SECTION -->
 
@@ -312,7 +312,7 @@
             </div>
 
             <!-- 計算細項 -->
-            <div class="px-4 py-1 space-y-2">
+            <div class="px-4 py-1 flex flex-col gap-2">
                 <div class="flex justify-between text-xs font-medium text-slate-500">
                     <span id="label-m1-fee">+ 手續費 (0%)</span>
                     <div class="flex items-center gap-1">
@@ -394,7 +394,7 @@
         </div>
 
         <!-- ACTIONS -->
-        <div class="mt-8 flex flex-col gap-3 hide-on-capture">
+        <div class="mt-2 flex flex-col gap-3 hide-on-capture">
             <div class="flex gap-3">
                 <button id="btn-download" class="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 active:scale-95">
                     <i data-lucide="download" class="w-4 h-4"></i> 下載結果圖
