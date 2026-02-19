@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>加密貨幣卡交易計算機</title>
-
-    <!-- 加入 Open Graph (OG) 標籤，讓 LINE/FB 等通訊軟體分享時有漂亮的預覽卡片 -->
     <meta property="og:title" content="加密貨幣卡交易計算機">
     <meta property="og:description" content="精算持卡消費真實轉換成本，提供「成本回推」與「準備金試算」功能。">
     <meta property="og:type" content="website">
-    <meta property="og:url" content=""> <!-- 如果你有網域，可以在這裡填入絕對路徑 -->
-    <!-- <meta property="og:image" content="你的預覽圖片網址"> 如果有自訂圖片可以解開這行 -->
+    <meta property="og:url" content="">
+    <!-- <meta property="og:image" content=""> -->
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -71,17 +69,17 @@
             <div class="flex items-center gap-2 hide-on-capture">
                 <label for="input-currency-code" class="text-xs font-bold text-blue-200 uppercase">計價幣別</label>
                 <input type="text" id="input-currency-code" value="TWD" maxlength="5"
-                       class="w-16 px-2 py-1 rounded bg-blue-700/50 border border-blue-400/30 text-white font-bold text-center text-sm uppercase outline-none focus:bg-blue-700 focus:border-white transition-colors placeholder-blue-300"
+                       class="w-16 px-2 py-1 rounded bg-blue-700/50 border border-blue-400/30 text-white font-bold text-center text-[10px] uppercase outline-none focus:bg-blue-700 focus:border-white transition-colors placeholder-blue-300"
                        placeholder="TWD">
             </div>
 
-            <div class="hidden show-on-capture-block text-sm font-bold bg-blue-700/50 px-3 py-1.5 rounded-md">
+            <div class="hidden show-on-capture-block text-[10px] font-bold bg-blue-700/50 px-3 py-1.5 rounded-md">
                 幣別：<span class="currency-text">TWD</span>
             </div>
         </div>
 
         <div class="flex items-center justify-between mb-2">
-            <p id="mode-desc" class="text-blue-100 text-sm opacity-90">計算：將消費反推為真實持有成本</p>
+            <p id="mode-desc" class="text-blue-100 text-[10px] opacity-90">計算：將消費反推為真實持有成本</p>
 
             <!-- Mode Toggle Buttons -->
             <div class="bg-blue-700/50 rounded-lg p-1 flex text-xs font-bold hide-on-capture shrink-0">
@@ -98,11 +96,11 @@
 
     <div class="p-6 flex flex-col gap-6">
 
-        <!-- Shared Link Notice (預設隱藏，由 JS 控制顯示) -->
+        <!-- Shared Link Notice -->
         <div id="shared-link-notice" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-4 hide-on-capture flex items-start gap-3 shadow-sm">
             <i data-lucide="bell-ring" class="w-5 h-5 text-blue-500 shrink-0 mt-0.5"></i>
             <div class="flex-1">
-                <h3 class="text-sm font-bold text-blue-800">您正在檢視分享的試算結果</h3>
+                <h3 class="text-[10px] font-bold text-blue-800">您正在檢視分享的試算結果</h3>
                 <p class="text-xs text-blue-600 mt-1 leading-relaxed">此畫面為他人建立的計算設定。編輯任一數值即可開始您的專屬計算，或點擊下方按鈕重新開始。</p>
                 <button id="btn-clear-shared" class="mt-3 px-3 py-1.5 bg-white border border-blue-200 text-blue-600 hover:text-blue-700 text-xs font-bold rounded-lg hover:bg-blue-100 transition-colors shadow-sm flex items-center gap-1.5">
                     <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> 清除並重新試算
@@ -127,7 +125,7 @@
                     </button>
                 </div>
                 <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
-                    <span class="prefix-label text-blue-400 font-bold shrink-0 text-sm">USD</span>
+                    <span class="prefix-label text-blue-400 font-bold shrink-0 text-[10px]">USD</span>
                     <input type="number" step="any" id="input-usd-paid" placeholder="0.00"
                            class="w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
                 </div>
@@ -137,7 +135,7 @@
             <div class="mode-1-only space-y-1.5 col-span-2">
                 <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center h-5">商品價格 (<span class="currency-text">TWD</span>)</label>
                 <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
-                    <span class="prefix-label currency-label text-slate-400 font-bold shrink-0 text-sm">TWD</span>
+                    <span class="prefix-label currency-label text-slate-400 font-bold shrink-0 text-[10px]">TWD</span>
                     <input type="number" step="any" id="input-val-m1" placeholder="0"
                            class="w-full bg-transparent outline-none font-mono text-lg font-semibold h-full">
                 </div>
@@ -167,7 +165,7 @@
             <div class="space-y-1.5">
                 <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center h-5 text-blue-600">交易所買入USD匯率</label>
                 <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
-                    <span class="prefix-label currency-label font-bold shrink-0 text-sm text-blue-400">TWD</span>
+                    <span class="prefix-label currency-label font-bold shrink-0 text-[10px] text-blue-400">TWD</span>
                     <input type="number" step="any" id="input-ex-rate" placeholder="0"
                            class="w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
                 </div>
@@ -178,7 +176,7 @@
                     信用卡公告USD匯率
                 </label>
                 <div id="wrapper-card-rate" class="input-flex-wrapper flex items-center border border-red-200 bg-red-50/50 rounded-lg px-3 py-2 gap-2 h-[44px]">
-                    <span class="prefix-label currency-label font-bold shrink-0 text-sm text-red-400">TWD</span>
+                    <span class="prefix-label currency-label font-bold shrink-0 text-[10px] text-red-400">TWD</span>
                     <input type="number" step="any" id="input-card-rate" placeholder="0"
                            class="w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-red-700">
                 </div>
@@ -252,9 +250,9 @@
                 <div class="text-center py-4 text-slate-400 text-xs italic">尚無雜費項目</div>
             </div>
             <div class="flex items-center gap-2 pt-2 border-t border-slate-200 hide-on-capture">
-                <input type="text" id="new-fee-name" placeholder="名稱" class="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-lg outline-none">
-                <input type="number" step="any" id="new-fee-amount" placeholder="0" class="w-20 px-3 py-2 text-sm border border-slate-300 rounded-lg outline-none">
-                <select id="new-fee-currency" class="px-1 py-2 text-sm border border-slate-300 rounded-lg bg-white outline-none">
+                <input type="text" id="new-fee-name" placeholder="名稱" class="flex-1 px-3 py-2 text-[10px] border border-slate-300 rounded-lg outline-none">
+                <input type="number" step="any" id="new-fee-amount" placeholder="0" class="w-20 px-3 py-2 text-[10px] border border-slate-300 rounded-lg outline-none">
+                <select id="new-fee-currency" class="px-1 py-2 text-[10px] border border-slate-300 rounded-lg bg-white outline-none">
                     <option value="USD">USD</option>
                     <option value="home" class="currency-text">TWD</option>
                 </select>
@@ -346,7 +344,7 @@
                     <span id="formula-m1-final" class="text-xs opacity-50">以交易所買入價 0 計算之持有成本</span>
                 </div>
                 <div class="relative z-10 text-right border-t border-white/10 pt-2">
-                    <span class="currency-label text-3xl font-bold font-mono tracking-tight text-yellow-400 font-bold mr-1">TWD</span>
+                    <span class="currency-label text-xl font-bold font-mono tracking-tight text-yellow-400 font-bold mr-1">TWD</span>
                     <span id="res-m1-final-twd" class="text-3xl font-bold font-mono tracking-tight text-yellow-400 font-bold">0</span>
                 </div>
             </div>
@@ -396,16 +394,16 @@
         <!-- ACTIONS -->
         <div class="mt-2 flex flex-col gap-3 hide-on-capture">
             <div class="flex gap-3">
-                <button id="btn-download" class="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 active:scale-95">
+                <button id="btn-download" class="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-[10px] font-bold transition-all disabled:opacity-50 active:scale-95">
                     <i data-lucide="download" class="w-4 h-4"></i> 下載結果圖
                 </button>
-                <button id="btn-copy-img" class="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 active:scale-95">
+                <button id="btn-copy-img" class="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white py-3 rounded-xl text-[10px] font-bold transition-all disabled:opacity-50 active:scale-95">
                     <i id="icon-copy-img" data-lucide="copy" class="w-4 h-4"></i>
                     <span id="text-copy-img">複製截圖</span>
                 </button>
             </div>
 
-            <button id="btn-copy-link" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 py-3 rounded-xl text-sm font-bold transition-all border border-blue-200 active:scale-95">
+            <button id="btn-copy-link" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 py-3 rounded-xl text-[10px] font-bold transition-all border border-blue-200 active:scale-95">
                 <i id="icon-copy-link" data-lucide="share-2" class="w-4 h-4"></i>
                 <span id="text-copy-link">複製包含說明的分享連結</span>
             </button>
@@ -595,8 +593,8 @@ $(document).ready(function() {
                 const displayCurr = item.currency === 'home' ? currencyCode : item.currency;
                 const html = `
                     <div class="fee-item-container flex items-center gap-2 bg-white p-3 rounded-lg border border-slate-200 shadow-sm min-h-[44px]">
-                        <div class="flex-1 text-sm font-medium text-slate-700 truncate">${item.name}</div>
-                        <div class="font-mono text-sm font-bold text-slate-600 shrink-0">${formatNum(item.amount)} ${displayCurr}</div>
+                        <div class="flex-1 text-[10px] font-medium text-slate-700 truncate">${item.name}</div>
+                        <div class="font-mono text-[10px] font-bold text-slate-600 shrink-0">${formatNum(item.amount)} ${displayCurr}</div>
                         <button data-id="${item.id}" class="btn-delete-fee p-1 text-slate-300 hover:text-red-500 hide-on-capture"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
                 `;
@@ -782,7 +780,6 @@ $(document).ready(function() {
     if (initParams.c) currencyCode = initParams.c.toUpperCase();
 
     if (initParams.iv) {
-        // 初始化時強制同步兩個輸入框
         $('#input-val-m1').val(initParams.iv);
         $('#input-val-m2').val(initParams.iv);
         const rate = parseNum(initParams.icr) || parseNum(initParams.ir) || 1;
@@ -884,23 +881,17 @@ $(document).ready(function() {
         renderFeeList();
     });
 
-    // ==========================================
-    // 全新升級的「分享連結」按鈕邏輯
-    // ==========================================
+
     if (window.location.protocol === 'blob:') $('#btn-copy-link').hide();
     
     $('#btn-copy-link').click(async function() {
         const url = window.location.href;
         
-        // 1. 根據目前模式產生對應的中文描述文字
         const modeText = mode === 'twd_to_usd' ? '成本回推' : '準備金試算';
         const itemVal = mode === 'twd_to_usd' ? $('#input-val-m1').val() : $('#input-val-m2').val();
         const priceInfo = itemVal ? ` (商品價值：${itemVal} ${currencyCode})` : '';
-        
-        // 這是準備要複製給別人看的組合文字
         const shareText = `📊 加密貨幣卡計算機 (${modeText})${priceInfo}\n\n我剛計算了一筆交易，點擊連結查看詳細的持卡成本與效益分析：\n${url}`;
 
-        // 2. 優先嘗試 Web Share API (通常在手機瀏覽器才支援)
         if (navigator.share) {
             try {
                 await navigator.share({
@@ -908,27 +899,22 @@ $(document).ready(function() {
                     text: `我剛算了一筆交易 (${modeText})，點擊查看詳細結果：`,
                     url: url
                 });
-                return; // 系統原生分享成功，結束函式
+                return;
             } catch (err) {
-                console.log('使用者取消原生分享或分享失敗，降級使用複製功能', err);
-                // 如果取消或失敗，不要 return，繼續往下走複製到剪貼簿的邏輯
+                console.log('使用者取消原生分享或分享失敗，使用複製功能', err);
             }
         }
 
-        // 3. 降級方案：將「帶有說明的文字 + 網址」複製到剪貼簿 (電腦版最常用)
         const textArea = document.createElement("textarea");
         textArea.value = shareText;
         document.body.appendChild(textArea);
         textArea.select();
         try {
             document.execCommand('copy');
-            
-            // 變更按鈕圖示與文字作為回饋
             $('#icon-copy-link').replaceWith('<i id="icon-copy-link" data-lucide="check" class="w-4 h-4"></i>');
-            $('#text-copy-link').text('文字與連結已複製！貼給朋友吧');
+            $('#text-copy-link').text('文字與連結已複製！');
             lucide.createIcons();
             
-            // 2 秒後恢復原狀
             setTimeout(() => {
                 $('#icon-copy-link').replaceWith('<i id="icon-copy-link" data-lucide="share-2" class="w-4 h-4"></i>');
                 $('#text-copy-link').text('複製包含說明的分享連結');
