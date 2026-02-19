@@ -634,10 +634,10 @@ $(document).ready(function() {
 
             if (hasUsdInput && usdIncludesFee) {
                 $('#label-m1-fee-calc').text(`(內含 $${formatNum(feesValue)})`).removeClass('hidden');
-                $('#res-m1-fee').text(`+$${formatNum(ui_fee_add)}`).removeClass('text-red-500').addClass('text-slate-400');
+                $('#res-m1-fee').text(`+$${formatNum(ui_fee_add)}`).removeClass('text-red-500').addClass('text-slate-400').addClass('line-through');
             } else {
                 $('#label-m1-fee-calc').addClass('hidden');
-                $('#res-m1-fee').text(`+$${formatNum(ui_fee_add)}`).removeClass('text-slate-400').addClass('text-red-500');
+                $('#res-m1-fee').text(`+$${formatNum(ui_fee_add)}`).removeClass('text-slate-400').removeClass('line-through').addClass('text-red-500');
             }
 
             if (extraUSD > 0) {
