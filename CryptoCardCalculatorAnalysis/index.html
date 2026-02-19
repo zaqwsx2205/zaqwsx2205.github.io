@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>加密貨幣卡交易計算機</title>
 
+    <!-- 加入 Open Graph (OG) 標籤，讓 LINE/FB 等通訊軟體分享時有漂亮的預覽卡片 -->
+    <meta property="og:title" content="加密貨幣卡交易計算機">
+    <meta property="og:description" content="精算持卡消費真實轉換成本，提供「成本回推」與「準備金試算」功能。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content=""> <!-- 如果你有網域，可以在這裡填入絕對路徑 -->
+    <!-- <meta property="og:image" content="你的預覽圖片網址"> 如果有自訂圖片可以解開這行 -->
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -22,40 +29,28 @@
 
     <style>
         body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
-		
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-		
         input[type=number] { -moz-appearance: textfield; }
-		
         .show-on-capture-block { display: none !important; }
-		
         .hidden-force { display: none !important; }
-		
+        
         .capture-mode .input-flex-wrapper {
           border: none !important;
           background: transparent !important;
           box-shadow: none !important;
           padding: 0 !important;
         }
-		
         .capture-mode .input-flex-wrapper input {
           border: none !important;
           background: transparent !important;
           outline: none !important;
           appearance: none !important;
         }
-		
-        .capture-mode .input-flex-wrapper input {
-          font-weight: 600;
-        }
-		
-        .capture-mode input {
-          caret-color: transparent !important;
-        }
-		
+        .capture-mode .input-flex-wrapper input { font-weight: 600; }
+        .capture-mode input { caret-color: transparent !important; }
         .capture-mode {
           border-radius: 0 !important;
-          box-shadow: none !important; /* 移除陰影 */
+          box-shadow: none !important;
         }
     </style>
 </head>
@@ -103,6 +98,18 @@
 
     <div class="p-6 space-y-6">
 
+        <!-- Shared Link Notice (預設隱藏，由 JS 控制顯示) -->
+        <div id="shared-link-notice" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-4 hide-on-capture flex items-start gap-3 shadow-sm">
+            <i data-lucide="bell-ring" class="w-5 h-5 text-blue-500 shrink-0 mt-0.5"></i>
+            <div class="flex-1">
+                <h3 class="text-sm font-bold text-blue-800">您正在檢視分享的試算結果</h3>
+                <p class="text-xs text-blue-600 mt-1 leading-relaxed">此畫面為他人建立的計算設定。您可以直接修改下方數值，產生專屬於您的計算結果。</p>
+            </div>
+            <button id="btn-close-notice" class="text-blue-400 hover:text-blue-600 transition-colors p-1" title="關閉提示">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
         <!-- INPUT GRID -->
         <div id="input-container" class="grid grid-cols-2 gap-x-6 gap-y-4">
 
@@ -110,14 +117,12 @@
             <div class="mode-1-only space-y-1.5 col-span-2">
                 <div class="flex items-center justify-between h-5">
                     <label class="text-xs font-bold text-slate-500 uppercase text-blue-600 whitespace-nowrap flex items-center h-5">實際刷卡金額</label>
-
                     <button id="btn-toggle-fee-include" class="flex items-center gap-1 text-[9px] text-slate-500 hover:text-blue-600 transition-colors"
                             title="切換：扣款金額是否已包含手續費">
                         <i id="icon-fee-check" data-lucide="check-square" class="w-3 h-3 text-blue-500"></i>
                         <span id="text-fee-check">費用內含信用卡手續費</span>
                     </button>
                 </div>
-
                 <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
                     <span class="prefix-label text-blue-400 font-bold shrink-0 text-sm">USD</span>
                     <input type="number" step="any" id="input-usd-paid" placeholder="0.00"
@@ -196,7 +201,6 @@
                     <i data-lucide="percent" class="suffix-label w-4 h-4 text-slate-400"></i>
                 </div>
             </div>
-
 
             <!-- 驗算差異塊 -->
             <div id="block-verify" class="mode-1-only bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs flex flex-col gap-1 text-slate-600 col-span-2 hidden">
@@ -293,7 +297,6 @@
 
         <!-- Mode 1 Results -->
         <div id="result-mode-1" class="space-y-4">
-			
             <!-- 實際扣款 USD -->
             <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm min-h-[64px]">
                 <div class="flex flex-col">
@@ -401,7 +404,7 @@
 
             <button id="btn-copy-link" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 py-3 rounded-xl text-sm font-bold transition-all border border-blue-200 active:scale-95">
                 <i id="icon-copy-link" data-lucide="share-2" class="w-4 h-4"></i>
-                <span id="text-copy-link">複製分享連結 (URL)</span>
+                <span id="text-copy-link">複製包含說明的分享連結</span>
             </button>
         </div>
 
@@ -458,6 +461,20 @@ $(document).ready(function() {
             fi: items
         };
     }
+
+    // ==========================================
+    // 取得參數後立刻判斷分享提示顯示邏輯
+    // ==========================================
+    const initParams = parseUrlParams();
+    
+    // 檢查初始的參數是否帶有設定值，若有則判定為透過分享連結進入
+    if (initParams.iv || initParams.up || initParams.ir || initParams.icr) {
+        $('#shared-link-notice').removeClass('hidden');
+    }
+
+    $('#btn-close-notice').click(function() {
+        $('#shared-link-notice').slideUp(200);
+    });
 
     function updateUrl() {
         if (!isUrlSupported) return;
@@ -692,20 +709,20 @@ $(document).ready(function() {
             const feeTwd = baseUSD_forDecomp * (feePct / 100) * exBuyRate;
             const cashbackTwd = baseUSD_forDecomp * (dPct / 100) * exBuyRate;
 
-			if (baseUSD_forDecomp > 0 && exBuyRate > 0 && cardSellRate > 0) {
-				$('#decomp-box').removeClass('hidden');
+            if (baseUSD_forDecomp > 0 && exBuyRate > 0 && cardSellRate > 0) {
+                $('#decomp-box').removeClass('hidden');
 
-				const fxSign = fxDiffTwd > 0 ? '+' : '';
-				const fxClass = fxDiffTwd > 0 ? 'text-red-500' : 'text-emerald-500';
-				
-				$('#res-decomp-fx').text(`${fxSign}${formatNum(fxDiffTwd, 1)}`).attr('class', fxClass);
-				$('#res-decomp-fee').text('+' + formatNum(feeTwd, 1)).attr('class', 'text-red-500');
-				$('#res-decomp-cashback').text('-' + formatNum(cashbackTwd, 1)).attr('class', 'text-emerald-500');
-				$('#res-implied-rate').text(formatNum(impliedRate, 3));
-				$('#res-effective-rate').text(formatNum(effectiveRate, 3));
-			} else {
-				$('#decomp-box').addClass('hidden');
-			}
+                const fxSign = fxDiffTwd > 0 ? '+' : '';
+                const fxClass = fxDiffTwd > 0 ? 'text-red-500' : 'text-emerald-500';
+                
+                $('#res-decomp-fx').text(`${fxSign}${formatNum(fxDiffTwd, 1)}`).attr('class', fxClass);
+                $('#res-decomp-fee').text('+' + formatNum(feeTwd, 1)).attr('class', 'text-red-500');
+                $('#res-decomp-cashback').text('-' + formatNum(cashbackTwd, 1)).attr('class', 'text-emerald-500');
+                $('#res-implied-rate').text(formatNum(impliedRate, 3));
+                $('#res-effective-rate').text(formatNum(effectiveRate, 3));
+            } else {
+                $('#decomp-box').addClass('hidden');
+            }
 
         } else {
             const usdToSpend = val / cardSellRate;
@@ -724,8 +741,7 @@ $(document).ready(function() {
         updateUrl();
     }
 
-    // --- Init ---
-    const initParams = parseUrlParams();
+    // --- Init Variables ---
     if (initParams.m) mode = initParams.m;
     if (initParams.fi) feeItems = initParams.fi;
     if (initParams.uf !== undefined) usdIncludesFee = initParams.uf;
@@ -802,130 +818,65 @@ $(document).ready(function() {
         renderFeeList();
     });
 
-    // Copy link
+    // ==========================================
+    // 全新升級的「分享連結」按鈕邏輯
+    // ==========================================
     if (window.location.protocol === 'blob:') $('#btn-copy-link').hide();
-    $('#btn-copy-link').click(function() {
+    
+    $('#btn-copy-link').click(async function() {
         const url = window.location.href;
+        
+        // 1. 根據目前模式產生對應的中文描述文字
+        const modeText = mode === 'twd_to_usd' ? '成本回推' : '準備金試算';
+        const itemVal = mode === 'twd_to_usd' ? $('#input-val-m1').val() : $('#input-val-m2').val();
+        const priceInfo = itemVal ? ` (商品價值：${itemVal} ${currencyCode})` : '';
+        
+        // 這是準備要複製給別人看的組合文字
+        const shareText = `📊 加密貨幣卡計算機 (${modeText})${priceInfo}\n\n我剛計算了一筆交易，點擊連結查看詳細的持卡成本與效益分析：\n${url}`;
+
+        // 2. 優先嘗試 Web Share API (通常在手機瀏覽器才支援)
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: '加密貨幣卡交易計算機',
+                    text: `我剛算了一筆交易 (${modeText})，點擊查看詳細結果：`,
+                    url: url
+                });
+                return; // 系統原生分享成功，結束函式
+            } catch (err) {
+                console.log('使用者取消原生分享或分享失敗，降級使用複製功能', err);
+                // 如果取消或失敗，不要 return，繼續往下走複製到剪貼簿的邏輯
+            }
+        }
+
+        // 3. 降級方案：將「帶有說明的文字 + 網址」複製到剪貼簿 (電腦版最常用)
         const textArea = document.createElement("textarea");
-        textArea.value = url;
+        textArea.value = shareText;
         document.body.appendChild(textArea);
         textArea.select();
         try {
             document.execCommand('copy');
+            
+            // 變更按鈕圖示與文字作為回饋
             $('#icon-copy-link').replaceWith('<i id="icon-copy-link" data-lucide="check" class="w-4 h-4"></i>');
-            $('#text-copy-link').text('連結已複製');
+            $('#text-copy-link').text('文字與連結已複製！貼給朋友吧');
             lucide.createIcons();
+            
+            // 2 秒後恢復原狀
             setTimeout(() => {
                 $('#icon-copy-link').replaceWith('<i id="icon-copy-link" data-lucide="share-2" class="w-4 h-4"></i>');
-                $('#text-copy-link').text('複製分享連結 (URL)');
+                $('#text-copy-link').text('複製包含說明的分享連結');
                 lucide.createIcons();
-            }, 2000);
-        } catch(e){}
+            }, 2500);
+        } catch(e){
+            console.error('複製失敗', e);
+        }
         document.body.removeChild(textArea);
     });
 
     // =========================
     // modern-screenshot Capture
     // =========================
-
-    function withCaptureVisibility(run) {
-        const hideEls = Array.from(document.querySelectorAll('.hide-on-capture'));
-        const showEls = Array.from(document.querySelectorAll('.show-on-capture-block'));
-
-        const backups = [];
-        hideEls.forEach(el => backups.push({ el, display: el.style.display }));
-        showEls.forEach(el => backups.push({ el, display: el.style.display, className: el.className }));
-
-        // hide
-        hideEls.forEach(el => { el.style.display = 'none'; });
-
-        // show (override the CSS that forces display:none)
-        showEls.forEach(el => {
-            el.style.display = 'block';
-            el.classList.remove('hidden');
-        });
-
-        try { return run(); }
-        finally {
-            backups.forEach(b => {
-                b.el.style.display = b.display || '';
-                if (b.className !== undefined) b.el.className = b.className;
-            });
-        }
-    }
-
-    function withInputsAsText(run) {
-        const wrappers = Array.from(document.querySelectorAll('#capture-card-root .input-flex-wrapper'));
-        const replacements = [];
-
-        wrappers.forEach(wrapper => {
-            const input = wrapper.querySelector('input');
-            if (!input) return;
-
-            const valDiv = document.createElement('div');
-            valDiv.innerText = input.value || '0';
-            valDiv.style.fontSize = '20px';
-            valDiv.style.fontWeight = '600';
-            valDiv.style.lineHeight = '1';
-            valDiv.style.display = 'flex';
-            valDiv.style.alignItems = 'center';
-            valDiv.style.flex = '1';
-            valDiv.style.color = '#334155';
-
-            if (input.disabled) valDiv.style.color = '#94a3b8';
-            if (input.classList.contains('text-right')) valDiv.style.justifyContent = 'flex-end';
-            if (input.classList.contains('text-blue-700')) valDiv.style.color = '#1d4ed8';
-            if (input.classList.contains('text-red-700')) valDiv.style.color = '#b91c1c';
-            
-            const wrapperBackup = {
-                wrapper,
-                style: {
-                    border: wrapper.style.border,
-                    background: wrapper.style.background,
-                    boxShadow: wrapper.style.boxShadow,
-                    padding: wrapper.style.padding
-                }
-            };
-            wrapper.style.border = 'none';
-            wrapper.style.background = 'transparent';
-            wrapper.style.boxShadow = 'none';
-            wrapper.style.padding = '0';
-
-            replacements.push({ input, valDiv, wrapperBackup });
-            input.parentNode.replaceChild(valDiv, input);
-        });
-
-        try { return run(); }
-        finally {
-            // restore
-            replacements.forEach(r => {
-                r.valDiv.parentNode.replaceChild(r.input, r.valDiv);
-                const w = r.wrapperBackup.wrapper;
-                w.style.border = r.wrapperBackup.style.border;
-                w.style.background = r.wrapperBackup.style.background;
-                w.style.boxShadow = r.wrapperBackup.style.boxShadow;
-                w.style.padding = r.wrapperBackup.style.padding;
-            });
-        }
-    }
-
-    async function captureNodeToPngDataUrl(node) {
-        // modern-screenshot options: https://github.com/qq15725/modern-screenshot (Options -> options.ts)
-        return await modernScreenshot.domToPng(node, {
-            backgroundColor: '#ffffff',
-            scale: 3,
-            filter: (n) => !(n.classList && n.classList.contains('hide-on-capture'))
-        });
-    }
-
-    async function captureNodeToBlob(node) {
-        return await modernScreenshot.domToBlob(node, {
-            backgroundColor: '#ffffff',
-            scale: 3,
-            filter: (n) => !(n.classList && n.classList.contains('hide-on-capture'))
-        });
-    }
-
     async function handleCapture(action) {
       const card = document.getElementById('capture-card-root');
       if (!card) return;
