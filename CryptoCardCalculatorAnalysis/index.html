@@ -379,6 +379,10 @@
                             <span>手續費成本</span>
                             <span id="res-decomp-fee" class="text-red-500">+0.0</span>
                         </div>
+                        <div id="row-decomp-extra" class="flex justify-between hidden">
+                            <span>額外雜費</span>
+                            <span id="res-decomp-extra" class="text-red-500">+0.0</span>
+                        </div>
                         <div class="flex justify-between">
                             <span>回饋抵銷</span>
                             <span id="res-decomp-cashback" class="text-emerald-500">-0.0</span>
@@ -768,6 +772,7 @@ $(document).ready(function() {
             const deltaTwd = deltaUSD * exBuyRate;
             const feeTwd = feesValue * exBuyRate;
             const cashbackTwd = cashback * exBuyRate;
+            const extraTwd = extraTotalUSD * exBuyRate;
 
             if (baseUSD_forDecomp > 0 && exBuyRate > 0 && cardSellRate > 0) {
                 $('#decomp-box').removeClass('hidden');
@@ -787,6 +792,14 @@ $(document).ready(function() {
                 }
 
                 $('#res-decomp-fee').text('+' + formatNum(feeTwd, 1)).attr('class', 'text-red-500');
+                
+                if (extraTotalUSD > 0) {
+                    $('#row-decomp-extra').removeClass('hidden');
+                    $('#res-decomp-extra').text('+' + formatNum(extraTwd, 1)).attr('class', 'text-red-500');
+                } else {
+                    $('#row-decomp-extra').addClass('hidden');
+                }
+                
                 $('#res-decomp-cashback').text('-' + formatNum(cashbackTwd, 1)).attr('class', 'text-emerald-500');
                 $('#res-implied-rate').text(formatNum(impliedRate, 3));
                 $('#res-effective-rate').text(formatNum(effectiveRate, 3));
