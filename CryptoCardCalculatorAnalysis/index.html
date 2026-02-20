@@ -1,4 +1,175 @@
-4-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加密貨幣卡交易計算機</title>
+
+    <!-- 加入 Open Graph (OG) 標籤，讓 LINE/FB 等通訊軟體分享時有漂亮的預覽卡片 -->
+    <meta property="og:title" content="加密貨幣卡交易計算機">
+    <meta property="og:description" content="精算持卡消費真實轉換成本，提供「成本回推」與「準備金試算」功能。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content=""> <!-- 如果你有網域，可以在這裡填入絕對路徑 -->
+    <!-- <meta property="og:image" content="你的預覽圖片網址"> 如果有自訂圖片可以解開這行 -->
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- modern-screenshot (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/modern-screenshot/dist/index.js"></script>
+
+    <style>
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        .show-on-capture-block { display: none !important; }
+        .hidden-force { display: none !important; }
+        
+        .capture-mode .input-flex-wrapper {
+          border: none !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+        }
+        .capture-mode .input-flex-wrapper input {
+          border: none !important;
+          background: transparent !important;
+          outline: none !important;
+          appearance: none !important;
+        }
+        .capture-mode .input-flex-wrapper input { font-weight: 600; }
+        .capture-mode input { caret-color: transparent !important; }
+        .capture-mode {
+          border-radius: 0 !important;
+          box-shadow: none !important;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen p-4 flex justify-center items-start pt-8 pb-20 text-slate-800">
+
+<div id="capture-card-root" class="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+
+    <!-- Header -->
+    <div class="bg-blue-600 pt-6 pb-4 px-6 text-white">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <i data-lucide="calculator" class="w-6 h-6"></i>
+                <h1 class="text-xl font-bold tracking-tight">加密貨幣卡計算機</h1>
+            </div>
+
+            <!-- Currency Setting -->
+            <div class="flex items-center gap-2 hide-on-capture">
+                <label for="input-currency-code" class="text-xs font-bold text-blue-200 uppercase">計價幣別</label>
+                <input type="text" id="input-currency-code" value="TWD" maxlength="5"
+                       class="w-16 px-2 py-1 rounded bg-blue-700/50 border border-blue-400/30 text-white font-bold text-center text-sm uppercase outline-none focus:bg-blue-700 focus:border-white transition-colors placeholder-blue-300"
+                       placeholder="TWD">
+            </div>
+
+            <div class="hidden show-on-capture-block text-sm font-bold bg-blue-700/50 px-3 py-1.5 rounded-md">
+                幣別：<span class="currency-text">TWD</span>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between mb-2">
+            <p id="mode-desc" class="text-blue-100 text-sm opacity-90">計算：將消費反推為真實持有成本</p>
+
+            <!-- Mode Toggle Buttons -->
+            <div class="bg-blue-700/50 rounded-lg p-1 flex text-xs font-bold hide-on-capture shrink-0">
+                <button id="btn-mode-1" class="px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm">成本回推</button>
+                <button id="btn-mode-2" class="px-3 py-1.5 rounded-md transition-all text-blue-200">準備金試算</button>
+            </div>
+
+            <!-- Mode Label for Capture -->
+            <div id="capture-mode-label" class="hidden show-on-capture-block text-xs font-bold bg-blue-700/50 px-2 py-1 rounded-md">
+                模式：成本回推
+            </div>
+        </div>
+    </div>
+
+    <div class="p-6 flex flex-col gap-6">
+
+        <!-- Shared Link Notice -->
+        <div id="shared-link-notice" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-4 hide-on-capture flex items-start gap-3 shadow-sm">
+            <i data-lucide="bell-ring" class="w-5 h-5 text-blue-500 shrink-0 mt-0.5"></i>
+            <div class="flex-1">
+                <h3 class="text-sm font-bold text-blue-800">您正在檢視分享的試算結果</h3>
+                <p class="text-xs text-blue-600 mt-1 leading-relaxed">此畫面為他人建立的計算設定。編輯任一數值即可開始您的專屬計算，或點擊下方按鈕重新開始。</p>
+                <button id="btn-clear-shared" class="mt-3 px-3 py-1.5 bg-white border border-blue-200 text-blue-600 hover:text-blue-700 text-xs font-bold rounded-lg hover:bg-blue-100 transition-colors shadow-sm flex items-center gap-1.5">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> 清除並重新試算
+                </button>
+            </div>
+            <button id="btn-close-notice" class="text-blue-400 hover:text-blue-600 transition-colors p-1" title="關閉提示">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- INPUT GRID -->
+        <div id="input-container" class="grid grid-cols-2 gap-x-6 gap-y-4">
+
+            <!-- MODE 1 Inputs -->
+            <div class="mode-1-only space-y-1.5 col-span-2">
+                <div class="flex items-center justify-between h-5">
+                    <label class="text-xs font-bold text-slate-500 uppercase text-blue-600 whitespace-nowrap flex items-center h-5">實際刷卡金額</label>
+                    <button id="btn-toggle-fee-include" class="flex items-center gap-1 text-[9px] text-slate-500 hover:text-blue-600 transition-colors"
+                            title="切換：扣款金額是否已包含手續費">
+                        <i id="icon-fee-check" data-lucide="check-square" class="w-3 h-3 text-blue-500"></i>
+                        <span id="text-fee-check">費用內含信用卡手續費</span>
+                    </button>
+                </div>
+                <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
+                    <span class="prefix-label text-blue-400 font-bold shrink-0 text-[10px]">USD</span>
+                    <input type="number" step="any" id="input-usd-paid" placeholder="0.00"
+                           class="w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
+                </div>
+            </div>
+
+            <!-- Mode 1 Generic Currency Input -->
+            <div class="mode-1-only space-y-1.5 col-span-2">
+                <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center h-5">商品價格 (<span class="currency-text">TWD</span>)</label>
+                <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
+                    <span class="prefix-label currency-label text-slate-400 font-bold shrink-0 text-[10px]">TWD</span>
+                    <input type="number" step="any" id="input-val-m1" placeholder="0"
+                           class="w-full bg-transparent outline-none font-mono text-lg font-semibold h-full">
+                </div>
+            </div>
+
+            <!-- Mode 2 Convert Box -->
+            <div class="mode-2-only col-span-2 space-y-4 hidden-force">
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-3 block text-center whitespace-nowrap flex items-center justify-center h-5">金額換算</label>
+                    <div class="grid grid-cols-7 items-center gap-2">
+                        <div class="col-span-3 input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 bg-white h-[44px]">
+                            <span class="prefix-label text-slate-400 font-bold text-[10px] shrink-0 mr-1">USD</span>
+                            <input type="number" step="any" id="input-usd-convert" placeholder="0"
+                                   class="w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold text-right h-full">
+                        </div>
+                        <div class="col-span-1 flex justify-center text-slate-300"><i data-lucide="arrow-left-right" class="w-4 h-4"></i></div>
+                        <div class="col-span-3 input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 bg-white h-[44px]">
+                            <span class="prefix-label currency-label text-slate-400 font-bold text-[10px] shrink-0 mr-1">TWD</span>
+                            <input type="number" step="any" id="input-val-m2" placeholder="0"
+                                   class="w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold text-right h-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rates Grid -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center h-5 text-blue-600">交易所買入USD匯率</label>
+                <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
+                    <span class="prefix-label currency-label font-bold shrink-0 text-[10px] text-blue-400">TWD</span>
+                    <input type="number" step="any" id="input-ex-rate" placeholder="0"
+                           class="w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
                 </div>
             </div>
 
@@ -105,30 +276,33 @@
 
         <!-- Mode 2 Results -->
         <div id="result-mode-2" class="space-y-4 hidden-force">
-            <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm min-h-[64px]">
-                <div class="flex flex-col">
-                    <span class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider">目標購買金額</span>
-                    <span id="formula-m2-usd" class="text-[10px] text-orange-600 mt-1 opacity-70 leading-relaxed whitespace-nowrap">
+            <div class="flex items-start justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm min-h-[64px] gap-3">
+                <!-- 加入 min-w-0 flex-1 讓文字容器可以自然折行 -->
+                <div class="flex flex-col min-w-0 flex-1">
+                    <span class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider truncate">目標購買金額</span>
+                    <!-- 移除 whitespace-nowrap 改為 break-words -->
+                    <span id="formula-m2-usd" class="text-[10px] text-orange-600 mt-1 opacity-70 leading-relaxed break-words">
                         公式: 0 (金額) ÷ 1 (信用卡公告匯率)
                     </span>
                 </div>
-                <span id="res-m2-usd-spend" class="text-2xl font-mono font-bold text-slate-800">$0.00</span>
+                <span id="res-m2-usd-spend" class="text-2xl font-mono font-bold text-slate-800 shrink-0">$0.00</span>
             </div>
 
             <div class="flex justify-center -my-3 text-slate-300 relative z-10"><i data-lucide="arrow-down" class="w-5 h-5"></i></div>
 
             <div class="p-5 bg-orange-50 rounded-2xl border border-orange-200 ring-4 ring-orange-50 min-h-[80px] flex flex-col gap-3">
                 <div class="flex justify-between items-start">
-                    <div class="flex flex-col gap-1">
-                        <span class="text-sm text-orange-800 font-bold flex items-center gap-2">最終：建議入金 <span class="currency-text">TWD</span></span>
-                        <span id="formula-m2-twd" class="text-xs text-orange-600 opacity-70 whitespace-nowrap">
+                    <div class="flex flex-col gap-1 w-full min-w-0">
+                        <span class="text-sm text-orange-800 font-bold flex items-center gap-2 flex-wrap">最終：建議入金 <span class="currency-text">TWD</span></span>
+                        <!-- 移除 whitespace-nowrap 改為 break-words -->
+                        <span id="formula-m2-twd" class="text-xs text-orange-600 opacity-70 break-words leading-relaxed">
                             公式: 0 USD (含 2% Buffer) × 交易所買入匯率 0
                         </span>
                     </div>
                 </div>
                 <div class="text-right border-t border-orange-200/50 pt-2 mt-1">
                     <span class="currency-label font-mono font-bold text-orange-700 text-xl mr-1">TWD</span>
-                    <span id="res-m2-final-twd" class="text-3xl font-mono font-bold text-orange-700 font-bold">0</span>
+                    <span id="res-m2-final-twd" class="text-3xl font-mono font-bold text-orange-700 font-bold truncate">0</span>
                 </div>
             </div>
         </div>
@@ -136,14 +310,16 @@
         <!-- Mode 1 Results -->
         <div id="result-mode-1" class="space-y-4">
             <!-- 實際扣款 USD -->
-            <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm min-h-[64px]">
-                <div class="flex flex-col">
-                    <span class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider">實際扣款 USD</span>
-                    <span id="formula-m1-billed" class="text-[10px] text-slate-400 whitespace-nowrap">
+            <div class="flex items-start justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm min-h-[64px] gap-3">
+                <!-- 加入 min-w-0 flex-1 讓文字容器可以自然折行 -->
+                <div class="flex flex-col min-w-0 flex-1">
+                    <span class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider truncate">實際扣款 USD</span>
+                    <!-- 移除 whitespace-nowrap 改為 break-words -->
+                    <span id="formula-m1-billed" class="text-[10px] text-slate-400 break-words leading-relaxed">
                         公式: 商品 ÷ 扣款匯率
                     </span>
                 </div>
-                <div id="res-m1-billed-usd" class="text-2xl font-bold text-slate-700 font-mono">$0.00</div>
+                <div id="res-m1-billed-usd" class="text-2xl font-bold text-slate-700 font-mono shrink-0">$0.00</div>
             </div>
 
             <!-- 計算細項 -->
@@ -176,9 +352,9 @@
 
             <!-- 最終台幣 -->
             <div class="p-5 bg-slate-800 rounded-2xl shadow-xl text-white relative overflow-hidden min-h-[90px] flex flex-col gap-2">
-                <div class="relative z-10 flex flex-col">
-                    <span class="text-sm font-bold opacity-80">最終：實際總支出 (<span class="currency-text">TWD</span>)</span>
-                    <span id="formula-m1-final" class="text-xs opacity-50">以交易所買入價 0 計算之持有成本</span>
+                <div class="relative z-10 flex flex-col min-w-0">
+                    <span class="text-sm font-bold opacity-80 flex-wrap">最終：實際總支出 (<span class="currency-text">TWD</span>)</span>
+                    <span id="formula-m1-final" class="text-xs opacity-50 break-words leading-relaxed">以交易所買入價 0 計算之持有成本</span>
                 </div>
                 <div class="relative z-10 text-right border-t border-white/10 pt-2">
                     <span class="currency-label text-xl font-bold font-mono tracking-tight text-yellow-400 font-bold mr-1">TWD</span>
@@ -579,8 +755,6 @@ $(document).ready(function() {
             
             const baseUSD_forDecomp = (val > 0 && cardSellRate > 0) ? (val / cardSellRate) : 0;
             const fxDiffTwd = baseUSD_forDecomp * (exBuyRate - cardSellRate);
-            
-            // 修正：使用真實產生的數值來計算成本結構，確保各項相加等於最終總損益
             const deltaTwd = deltaUSD * exBuyRate;
             const feeTwd = feesValue * exBuyRate;
             const cashbackTwd = cashback * exBuyRate;
@@ -593,7 +767,6 @@ $(document).ready(function() {
                 
                 $('#res-decomp-fx').text(`${fxSign}${formatNum(fxDiffTwd, 1)}`).attr('class', fxClass);
                 
-                // 判斷並顯示隱藏匯差/溢價
                 if (Math.abs(deltaUSD) > 0.001) {
                     $('#row-decomp-delta').removeClass('hidden');
                     const deltaSign = deltaTwd > 0 ? '+' : '';
