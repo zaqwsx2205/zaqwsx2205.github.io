@@ -373,6 +373,10 @@
                             <span>匯差損耗</span>
                             <span id="res-decomp-fx" class="text-emerald-500">+0.0</span>
                         </div>
+                        <div id="row-decomp-delta" class="flex justify-between hidden">
+                            <span>隱藏匯差/溢價</span>
+                            <span id="res-decomp-delta" class="text-red-500">+0.0</span>
+                        </div>
                         <div class="flex justify-between">
                             <span>手續費成本</span>
                             <span id="res-decomp-fee" class="text-red-500">+0.0</span>
@@ -744,8 +748,11 @@ $(document).ready(function() {
             
             const baseUSD_forDecomp = (val > 0 && cardSellRate > 0) ? (val / cardSellRate) : 0;
             const fxDiffTwd = baseUSD_forDecomp * (exBuyRate - cardSellRate);
-            const feeTwd = baseUSD_forDecomp * (feePct / 100) * exBuyRate;
-            const cashbackTwd = baseUSD_forDecomp * (dPct / 100) * exBuyRate;
+            
+            // 修正：使用真實產生的數值來計算成本結構，確保各項相加等於最終總損益
+            const deltaTwd = deltaUSD * exBuyRate;
+            const feeTwd = feesValue * exBuyRate;
+            const cashbackTwd = cashback * exBuyRate;
 
             if (baseUSD_forDecomp > 0 && exBuyRate > 0 && cardSellRate > 0) {
                 $('#decomp-box').removeClass('hidden');
@@ -754,6 +761,17 @@ $(document).ready(function() {
                 const fxClass = fxDiffTwd > 0 ? 'text-red-500' : 'text-emerald-500';
                 
                 $('#res-decomp-fx').text(`${fxSign}${formatNum(fxDiffTwd, 1)}`).attr('class', fxClass);
+                
+                // 判斷並顯示隱藏匯差/溢價
+                if (Math.abs(deltaUSD) > 0.001) {
+                    $('#row-decomp-delta').removeClass('hidden');
+                    const deltaSign = deltaTwd > 0 ? '+' : '';
+                    const deltaClass = deltaTwd > 0 ? 'text-red-500' : 'text-emerald-500';
+                    $('#res-decomp-delta').text(`${deltaSign}${formatNum(deltaTwd, 1)}`).attr('class', deltaClass);
+                } else {
+                    $('#row-decomp-delta').addClass('hidden');
+                }
+
                 $('#res-decomp-fee').text('+' + formatNum(feeTwd, 1)).attr('class', 'text-red-500');
                 $('#res-decomp-cashback').text('-' + formatNum(cashbackTwd, 1)).attr('class', 'text-emerald-500');
                 $('#res-implied-rate').text(formatNum(impliedRate, 3));
