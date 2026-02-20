@@ -252,17 +252,13 @@
                 <div class="text-center py-4 text-slate-400 text-xs italic">尚無雜費項目</div>
             </div>
             <div class="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-200 hide-on-capture">
-                <!-- 加入 min-w-0 防止 flex-child 被原生 input width 撐開 -->
                 <input type="text" id="new-fee-name" placeholder="名稱" class="flex-1 w-full min-w-0 px-3 py-2 text-sm border border-slate-300 rounded-lg outline-none">
-                <!-- 將內部包裹層設定 w-full，確保它在手機模式中正確擴展 -->
                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <!-- 同樣加上 min-w-0 -->
                     <input type="number" step="any" id="new-fee-amount" placeholder="0" class="flex-1 w-full min-w-0 sm:w-24 px-3 py-2 text-sm border border-slate-300 rounded-lg outline-none">
                     <select id="new-fee-currency" class="px-2 py-2 text-sm border border-slate-300 rounded-lg bg-white outline-none shrink-0">
                         <option value="USD">USD</option>
                         <option value="home" class="currency-text">TWD</option>
                     </select>
-                    <!-- 修改按鈕樣式，寫死寬高與置中，防止被擠壓變形 -->
                     <button id="btn-add-fee" class="flex items-center justify-center p-0 shrink-0 w-[38px] h-[38px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                         <i data-lucide="plus-circle" class="w-5 h-5"></i>
                     </button>
@@ -277,10 +273,8 @@
         <!-- Mode 2 Results -->
         <div id="result-mode-2" class="space-y-4 hidden-force">
             <div class="flex items-start justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm min-h-[64px] gap-3">
-                <!-- 加入 min-w-0 flex-1 讓文字容器可以自然折行 -->
                 <div class="flex flex-col min-w-0 flex-1">
                     <span class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider truncate">目標購買金額</span>
-                    <!-- 移除 whitespace-nowrap 改為 break-words -->
                     <span id="formula-m2-usd" class="text-[10px] text-orange-600 mt-1 opacity-70 leading-relaxed break-words">
                         公式: 0 (金額) ÷ 1 (信用卡公告匯率)
                     </span>
@@ -294,7 +288,6 @@
                 <div class="flex justify-between items-start">
                     <div class="flex flex-col gap-1 w-full min-w-0">
                         <span class="text-sm text-orange-800 font-bold flex items-center gap-2 flex-wrap">最終：建議入金 <span class="currency-text">TWD</span></span>
-                        <!-- 移除 whitespace-nowrap 改為 break-words -->
                         <span id="formula-m2-twd" class="text-xs text-orange-600 opacity-70 break-words leading-relaxed">
                             公式: 0 USD (含 2% Buffer) × 交易所買入匯率 0
                         </span>
@@ -311,10 +304,8 @@
         <div id="result-mode-1" class="space-y-4">
             <!-- 實際扣款 USD -->
             <div class="flex items-start justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm min-h-[64px] gap-3">
-                <!-- 加入 min-w-0 flex-1 讓文字容器可以自然折行 -->
                 <div class="flex flex-col min-w-0 flex-1">
                     <span class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider truncate">實際扣款 USD</span>
-                    <!-- 移除 whitespace-nowrap 改為 break-words -->
                     <span id="formula-m1-billed" class="text-[10px] text-slate-400 break-words leading-relaxed">
                         公式: 商品 ÷ 扣款匯率
                     </span>
@@ -441,6 +432,7 @@ $(document).ready(function() {
     let usdIncludesFee = true;
     let currencyCode = 'TWD';
     let isUrlSupported = window.location.protocol !== 'blob:';
+    let urlUpdateTimeout = null;
 
     // --- Utilities ---
     const parseNum = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
@@ -466,18 +458,70 @@ $(document).ready(function() {
         } catch (e) { console.error("解析雜費清單失敗", e); }
 
         return {
-            m: params.get('m') || 'twd_to_usd',
-            iv: getParam('iv'),
-            up: getParam('up'),
-            ir: getParam('ir'),
-            icr: getParam('icr'),
-            id: getParam('id'),
-            if: getParam('if'),
-            bf: getParam('bf'),
-            c: getParam('c') || 'TWD',
-            uf: params.get('uf') !== '0',
-            fi: items
+            'm': params.get('m') || 'twd_to_usd',
+            'iv': getParam('iv'),
+            'up': getParam('up'),
+            'ir': getParam('ir'),
+            'icr': getParam('icr'),
+            'id': getParam('id'),
+            'if': getParam('if'),
+            'bf': getParam('bf'),
+            'c': getParam('c') || 'TWD',
+            'uf': params.get('uf') !== '0',
+            'fi': items
         };
+    }
+
+    // ==========================================
+    // 精準生成網址的獨立方法 (不受瀏覽器阻擋影響)
+    // ==========================================
+    function generateCurrentUrl() {
+        const params = new URLSearchParams();
+        params.set('m', mode);
+        params.set('c', currencyCode);
+
+        const inputValue = mode === 'twd_to_usd' ? $('#input-val-m1').val() : $('#input-val-m2').val();
+        if (inputValue) params.set('iv', inputValue);
+
+        const up = $('#input-usd-paid').val();
+        if (up) params.set('up', up);
+
+        const ir = $('#input-ex-rate').val();
+        if (ir) params.set('ir', ir);
+
+        const icr = $('#input-card-rate').val();
+        if (icr) params.set('icr', icr);
+
+        const idVal = $('#input-d').val();
+        if (idVal !== '') params.set('id', idVal);
+
+        const feeVal = $('#input-fee').val();
+        if (feeVal !== '') params.set('if', feeVal);
+
+        const bf = $('#input-buffer').val();
+        if (bf !== '') params.set('bf', bf);
+
+        params.set('uf', usdIncludesFee ? '1' : '0');
+        if (feeItems.length > 0) params.set('fi', JSON.stringify(feeItems));
+
+        const origin = window.location.origin !== 'null' ? window.location.origin : '';
+        return `${origin}${window.location.pathname}?${params.toString()}`;
+    }
+
+    // ==========================================
+    // 加入 Debounce 防抖，防止連續觸發 history.replaceState 被瀏覽器禁用
+    // ==========================================
+    function updateUrl() {
+        if (!isUrlSupported) return;
+        
+        clearTimeout(urlUpdateTimeout);
+        urlUpdateTimeout = setTimeout(() => {
+            try {
+                window.history.replaceState(null, '', generateCurrentUrl());
+            } catch (e) {
+                // 如果仍被瀏覽器阻擋，不會報錯影響執行
+            }
+        }, 300);
     }
 
     // ==========================================
@@ -485,7 +529,6 @@ $(document).ready(function() {
     // ==========================================
     const initParams = parseUrlParams();
     
-    // 檢查初始的參數是否帶有設定值，若有則判定為透過分享連結進入
     if (initParams.iv || initParams.up || initParams.ir || initParams.icr) {
         $('#shared-link-notice').removeClass('hidden');
     }
@@ -496,9 +539,8 @@ $(document).ready(function() {
     
     // 清除按鈕邏輯
     $('#btn-clear-shared').click(function() {
-        // 清除所有輸入欄位
         $('#input-usd-paid, #input-val-m1, #input-usd-convert, #input-val-m2, #input-ex-rate, #input-card-rate, #input-d, #input-fee').val('');
-        $('#input-buffer').val('2'); // 恢復預設緩衝
+        $('#input-buffer').val('2');
         
         feeItems = [];
         usdIncludesFee = true;
@@ -506,59 +548,19 @@ $(document).ready(function() {
         renderFeeList();
         renderFeeCheck();
         
-        // 清除網址列參數
         if (isUrlSupported) {
             const newUrl = window.location.pathname;
             window.history.replaceState(null, '', newUrl);
         }
         
         calculate();
-        
-        // 隱藏提示
         $('#shared-link-notice').slideUp(200);
     });
 
-    // 只要有任何編輯行為，就隱藏提示
     function hideSharedNoticeOnEdit() {
         if (!$('#shared-link-notice').hasClass('hidden') && $('#shared-link-notice').is(':visible')) {
             $('#shared-link-notice').slideUp(200);
         }
-    }
-
-    function updateUrl() {
-        if (!isUrlSupported) return;
-        try {
-            const params = new URLSearchParams();
-            params.set('m', mode);
-            params.set('c', currencyCode);
-
-            const inputValue = mode === 'twd_to_usd' ? $('#input-val-m1').val() : $('#input-val-m2').val();
-            if (inputValue) params.set('iv', inputValue);
-
-            const up = $('#input-usd-paid').val();
-            if (up) params.set('up', up);
-
-            const ir = $('#input-ex-rate').val();
-            if (ir) params.set('ir', ir);
-
-            const icr = $('#input-card-rate').val();
-            if (icr) params.set('icr', icr);
-
-            const id = $('#input-d').val();
-            if (id) params.set('id', id);
-
-            const iff = $('#input-fee').val();
-            if (iff) params.set('if', iff);
-
-            const bf = $('#input-buffer').val();
-            if (bf) params.set('bf', bf);
-
-            params.set('uf', usdIncludesFee ? '1' : '0');
-            if (feeItems.length > 0) params.set('fi', JSON.stringify(feeItems));
-
-            const newUrl = `${window.location.pathname}?${params.toString()}`;
-            window.history.replaceState(null, '', newUrl);
-        } catch (e) {}
     }
 
     // --- UI Updates ---
@@ -802,24 +804,24 @@ $(document).ready(function() {
     }
 
     // --- Init Variables ---
-    if (initParams.m) mode = initParams.m;
-    if (initParams.fi) feeItems = initParams.fi;
-    if (initParams.uf !== undefined) usdIncludesFee = initParams.uf;
-    if (initParams.c) currencyCode = initParams.c.toUpperCase();
+    if (initParams['m']) mode = initParams['m'];
+    if (initParams['fi']) feeItems = initParams['fi'];
+    if (initParams['uf'] !== undefined) usdIncludesFee = initParams['uf'];
+    if (initParams['c']) currencyCode = initParams['c'].toUpperCase();
 
-    if (initParams.iv) {
-        $('#input-val-m1').val(initParams.iv);
-        $('#input-val-m2').val(initParams.iv);
-        const rate = parseNum(initParams.icr) || parseNum(initParams.ir) || 1;
-        $('#input-usd-convert').val(cleanFloat(parseNum(initParams.iv) / rate));
+    if (initParams['iv']) {
+        $('#input-val-m1').val(initParams['iv']);
+        $('#input-val-m2').val(initParams['iv']);
+        const rate = parseNum(initParams['icr']) || parseNum(initParams['ir']) || 1;
+        $('#input-usd-convert').val(cleanFloat(parseNum(initParams['iv']) / rate));
     }
     
-    if (initParams.up) $('#input-usd-paid').val(initParams.up);
-    if (initParams.ir) $('#input-ex-rate').val(initParams.ir);
-    if (initParams.icr) $('#input-card-rate').val(initParams.icr);
-    if (initParams.id) $('#input-d').val(initParams.id);
-    if (initParams.if) $('#input-fee').val(initParams.if);
-    if (initParams.bf) $('#input-buffer').val(initParams.bf);
+    if (initParams['up']) $('#input-usd-paid').val(initParams['up']);
+    if (initParams['ir']) $('#input-ex-rate').val(initParams['ir']);
+    if (initParams['icr']) $('#input-card-rate').val(initParams['icr']);
+    if (initParams['id']) $('#input-d').val(initParams['id']);
+    if (initParams['if']) $('#input-fee').val(initParams['if']);
+    if (initParams['bf']) $('#input-buffer').val(initParams['bf']);
 
     updateCurrencyUI();
     renderFeeList();
@@ -838,24 +840,21 @@ $(document).ready(function() {
 
         const cardSellRate = parseNum($('#input-card-rate').val()) || parseNum($('#input-ex-rate').val()) || 1;
 
-        // =====================================
-        // 全域連動邏輯：不管在哪個模式，m1與m2永遠同步
-        // =====================================
+        // 全域連動邏輯
         if (this.id === 'input-val-m1') {
-            $('#input-val-m2').val($(this).val()); // 同步至 m2
+            $('#input-val-m2').val($(this).val());
             const twdVal = parseNum($(this).val());
             $('#input-usd-convert').val(twdVal > 0 ? cleanFloat(twdVal / cardSellRate) : '');
         } else if (this.id === 'input-val-m2') {
-            $('#input-val-m1').val($(this).val()); // 同步至 m1
+            $('#input-val-m1').val($(this).val());
             const twdVal = parseNum($(this).val());
             $('#input-usd-convert').val(twdVal > 0 ? cleanFloat(twdVal / cardSellRate) : '');
         } else if (this.id === 'input-usd-convert') {
             const usdVal = parseNum($(this).val());
             const twdVal = usdVal > 0 ? cleanFloat(usdVal * cardSellRate) : '';
             $('#input-val-m2').val(twdVal);
-            $('#input-val-m1').val(twdVal); // 同步至 m1
+            $('#input-val-m1').val(twdVal);
         } else if (this.id === 'input-card-rate' || this.id === 'input-ex-rate') {
-            // 當匯率變更時，根據當前模式決定是以哪一邊為主重新換算
             if (mode === 'usd_to_twd') {
                 const currentUsd = parseNum($('#input-usd-convert').val());
                 if (currentUsd > 0) {
@@ -913,7 +912,8 @@ $(document).ready(function() {
     if (window.location.protocol === 'blob:') $('#btn-copy-link').hide();
     
     $('#btn-copy-link').click(async function() {
-        const url = window.location.href;
+        // 修正：不再單純抓取網址列，而是點擊時「即時強制生成最新網址」，完全避開瀏覽器阻擋網址更新的問題
+        const url = isUrlSupported ? generateCurrentUrl() : window.location.href;
         
         const modeText = mode === 'twd_to_usd' ? '成本回推' : '準備金試算';
         const itemVal = mode === 'twd_to_usd' ? $('#input-val-m1').val() : $('#input-val-m2').val();
