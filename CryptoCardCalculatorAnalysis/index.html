@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>加密貨幣卡交易計算機</title>
 
-    <!-- 加入 Open Graph (OG) 標籤，讓 LINE/FB 等通訊軟體分享時有漂亮的預覽卡片 -->
     <meta property="og:title" content="加密貨幣卡交易計算機">
     <meta property="og:description" content="精算持卡消費真實轉換成本，提供「成本回推」與「準備金試算」功能。">
     <meta property="og:type" content="website">
-    <meta property="og:url" content=""> <!-- 如果你有網域，可以在這裡填入絕對路徑 -->
-    <!-- <meta property="og:image" content="你的預覽圖片網址"> 如果有自訂圖片可以解開這行 -->
+    <meta property="og:url" content=""> 
+    <!-- <meta property="og:image" content=""> -->
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -523,7 +522,7 @@ $(document).ready(function() {
             try {
                 window.history.replaceState(null, '', generateCurrentUrl());
             } catch (e) {
-                // 如果仍被瀏覽器阻擋，不會報錯影響執行
+			
             }
         }, 300);
     }
@@ -682,13 +681,8 @@ $(document).ready(function() {
             
             const extraHomeUSD = exBuyRate > 0 ? extraHome / exBuyRate : 0;
             const extraTotalUSD = extraUSD + extraHomeUSD;
-            
-            // 總扣款 USD 應只包含卡片本身的消費與回饋，不包含外部匯款產生的額外雜費
             const totalDeductUSD = step1_displayUSD + ui_fee_add - cashback;
-            
-            // 最終總支出 (TWD) 則是把 (卡片實際扣款 + 外部額外雜費) 乘上匯率
             const finalTwdCost = (totalDeductUSD + extraTotalUSD) * exBuyRate;
-
             const rateBaseUSD = cashbackBase > 0 ? cashbackBase : step1_displayUSD;
             const impliedRate = rateBaseUSD > 0 ? val / rateBaseUSD : 0;
             const effectiveRate = rateBaseUSD > 0 ? finalTwdCost / rateBaseUSD : 0;
@@ -851,7 +845,7 @@ $(document).ready(function() {
 
     // Inputs change
     $('input').on('input', function() {
-        hideSharedNoticeOnEdit(); // 有編輯動作時隱藏提示
+        hideSharedNoticeOnEdit();
 
         if (this.id === 'input-currency-code') {
             currencyCode = $(this).val().toUpperCase();
@@ -861,7 +855,6 @@ $(document).ready(function() {
 
         const cardSellRate = parseNum($('#input-card-rate').val()) || parseNum($('#input-ex-rate').val()) || 1;
 
-        // 全域連動邏輯
         if (this.id === 'input-val-m1') {
             $('#input-val-m2').val($(this).val());
             const twdVal = parseNum($(this).val());
@@ -933,7 +926,6 @@ $(document).ready(function() {
     if (window.location.protocol === 'blob:') $('#btn-copy-link').hide();
     
     $('#btn-copy-link').click(async function() {
-        // 修正：不再單純抓取網址列，而是點擊時「即時強制生成最新網址」，完全避開瀏覽器阻擋網址更新的問題
         const url = isUrlSupported ? generateCurrentUrl() : window.location.href;
         
         const modeText = mode === 'twd_to_usd' ? '成本回推' : '準備金試算';
