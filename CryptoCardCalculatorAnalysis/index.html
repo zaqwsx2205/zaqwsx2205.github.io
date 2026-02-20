@@ -330,26 +330,15 @@
 
                 <div class="border-t border-dashed border-slate-200 my-1"></div>
 
-                <div class="flex justify-between text-xs font-bold text-slate-700">
-                    <span>= 需準備 USD (應對餘額)</span>
-                    <span id="res-m1-total-deduct" class="font-mono text-slate-800">$0.00</span>
-                </div>
-            </div>
-
-            <!-- TWD 成本橋接區塊 -->
-            <div class="px-4 py-3 bg-slate-50 border border-slate-200/60 rounded-xl flex flex-col gap-2 mx-1 shadow-sm">
                 <div class="flex justify-between text-xs font-medium text-slate-500">
-                    <span>USD 換算成本 (<span class="currency-text">TWD</span>)</span>
-                    <span id="res-m1-usd-cost-twd" class="font-mono text-slate-700 font-semibold">0</span>
+                    <span>= 總扣款 USD (應對餘額)</span>
+                    <span id="res-m1-total-deduct" class="font-mono text-slate-700 font-bold">$0.00</span>
                 </div>
 
-                <div id="row-extra-home" class="flex justify-between text-xs font-medium text-slate-500 hidden">
-                    <span>+ 法幣雜費 (<span class="currency-text">TWD</span>)</span>
-                    <span id="res-m1-extra-home" class="font-mono text-red-500 font-semibold">+0</span>
+                <div id="row-extra-usd" class="flex justify-between text-xs font-medium text-slate-500 hidden">
+                    <span>+ 額外雜費總計</span>
+                    <span id="res-m1-extra-usd" class="font-mono text-red-500">+$0.00</span>
                 </div>
-
-                <div class="border-t border-dashed border-slate-200 mt-1 mb-0.5"></div>
-                <div class="text-[10px] text-slate-400 text-right">向下計算最終結算</div>
             </div>
 
             <!-- 最終台幣 -->
@@ -623,8 +612,8 @@ $(document).ready(function() {
                 const displayCurr = item.currency === 'home' ? currencyCode : item.currency;
                 const html = `
                     <div class="fee-item-container flex items-center gap-2 bg-white p-3 rounded-lg border border-slate-200 shadow-sm min-h-[44px]">
-                        <div class="flex-1 text-[10px] font-medium text-slate-700 truncate">${item.name}</div>
-                        <div class="font-mono text-[10px] font-bold text-slate-600 shrink-0">${formatNum(item.amount)} ${displayCurr}</div>
+                        <div class="flex-1 text-sm font-medium text-slate-700 truncate">${item.name}</div>
+                        <div class="font-mono text-sm font-bold text-slate-600 shrink-0">${formatNum(item.amount)} ${displayCurr}</div>
                         <button data-id="${item.id}" class="btn-delete-fee p-1 text-slate-300 hover:text-red-500 hide-on-capture"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
                 `;
@@ -686,8 +675,15 @@ $(document).ready(function() {
             }
 
             const cashback = cashbackBase * (dPct / 100);
-            const totalDeductUSD = step1_displayUSD + ui_fee_add - cashback + extraUSD;
-            const finalTwdCost = totalDeductUSD * exBuyRate + extraHome;
+            
+            const extraHomeUSD = exBuyRate > 0 ? extraHome / exBuyRate : 0;
+            const extraTotalUSD = extraUSD + extraHomeUSD;
+            
+            // 總扣款 USD 應只包含卡片本身的消費與回饋，不包含外部匯款產生的額外雜費
+            const totalDeductUSD = step1_displayUSD + ui_fee_add - cashback;
+            
+            // 最終總支出 (TWD) 則是把 (卡片實際扣款 + 外部額外雜費) 乘上匯率
+            const finalTwdCost = (totalDeductUSD + extraTotalUSD) * exBuyRate;
 
             const rateBaseUSD = cashbackBase > 0 ? cashbackBase : step1_displayUSD;
             const impliedRate = rateBaseUSD > 0 ? val / rateBaseUSD : 0;
@@ -743,16 +739,12 @@ $(document).ready(function() {
             $('#label-m1-cashback').text(`- 信用卡回饋 (${formatNum(dPct)}%)`);
             $('#res-m1-cashback').text('-$' + formatNum(cashback));
             $('#res-m1-total-deduct').text('$' + formatNum(totalDeductUSD));
-            
-            // TWD 橋接區塊計算
-            const usdCostTwd = totalDeductUSD * exBuyRate;
-            $('#res-m1-usd-cost-twd').text(formatNum(usdCostTwd, 0));
-            
-            if (extraHome > 0) {
-                $('#row-extra-home').removeClass('hidden');
-                $('#res-m1-extra-home').text('+' + formatNum(extraHome, 0));
+
+            if (extraTotalUSD > 0) {
+                $('#row-extra-usd').removeClass('hidden');
+                $('#res-m1-extra-usd').text('+$' + formatNum(extraTotalUSD));
             } else {
-                $('#row-extra-home').addClass('hidden');
+                $('#row-extra-usd').addClass('hidden');
             }
 
             $('#formula-m1-final').text(`以交易所買入價 ${formatNum(exBuyRate)} 計算之持有成本`);
