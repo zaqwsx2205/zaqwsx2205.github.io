@@ -612,8 +612,8 @@ $(document).ready(function() {
                 const displayCurr = item.currency === 'home' ? currencyCode : item.currency;
                 const html = `
                     <div class="fee-item-container flex items-center gap-2 bg-white p-3 rounded-lg border border-slate-200 shadow-sm min-h-[44px]">
-                        <div class="flex-1 text-[10px] font-medium text-slate-700 truncate">${item.name}</div>
-                        <div class="font-mono text-[10px] font-bold text-slate-600 shrink-0">${formatNum(item.amount)} ${displayCurr}</div>
+                        <div class="flex-1 text-sm font-medium text-slate-700 truncate">${item.name}</div>
+                        <div class="font-mono text-sm font-bold text-slate-600 shrink-0">${formatNum(item.amount)} ${displayCurr}</div>
                         <button data-id="${item.id}" class="btn-delete-fee p-1 text-slate-300 hover:text-red-500 hide-on-capture"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
                 `;
