@@ -9,19 +9,10 @@
   <meta property="og:description" content="多階段計算加密貨幣攤平/加倉成本，精準推算所需資金與買入數量。" />
   <meta property="og:type" content="website" />
 
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-
-  <!-- jQuery -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
-  <!-- modern-screenshot (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/modern-screenshot/dist/index.js"></script>
-
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -29,24 +20,82 @@
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
 
-    .input-flex-wrapper { transition: all 0.2s; }
     .stage-card.collapsed .stage-body { display: none; }
     .stage-card.collapsed .stage-footer-results { border-top: none; padding-top: 0; margin-top: 0; }
 
-    /* Custom scrollbar for textareas */
     textarea::-webkit-scrollbar { width: 8px; }
     textarea::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
     textarea::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     textarea::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* Capture helpers */
     .show-on-capture-block { display: none !important; }
-    .hidden-force { display: none !important; }
 
-    /* 截圖時避免外框白邊 */
-    .capture-mode {
+    #app-root.capture-mode .hide-on-capture { display: none !important; }
+    #app-root.capture-mode .show-on-capture-block { display: block !important; }
+
+    #app-root.capture-mode {
       border-radius: 0 !important;
       box-shadow: none !important;
+    }
+
+    #app-root.capture-mode,
+    #app-root.capture-mode * {
+      --tw-ring-inset: initial !important;
+      --tw-ring-offset-width: 0px !important;
+      --tw-ring-offset-color: transparent !important;
+      --tw-ring-color: transparent !important;
+      --tw-ring-offset-shadow: 0 0 #0000 !important;
+      --tw-ring-shadow: 0 0 #0000 !important;
+    }
+
+    #app-root.capture-mode .input-flex-wrapper {
+      border: 0 !important;
+      border-width: 0 !important;
+      border-color: transparent !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+    }
+
+    #app-root.capture-mode .input-flex-wrapper input,
+    #app-root.capture-mode .input-flex-wrapper select,
+    #app-root.capture-mode .input-flex-wrapper textarea {
+      border: 0 !important;
+      border-width: 0 !important;
+      border-color: transparent !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      outline: none !important;
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      caret-color: transparent !important;
+    }
+
+    #app-root.capture-mode .input-flex-wrapper :focus,
+    #app-root.capture-mode .input-flex-wrapper :focus-visible,
+    #app-root.capture-mode .input-flex-wrapper:focus-within {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+
+    #app-root.capture-mode .stage-input-name,
+    #app-root.capture-mode .stage-input-name:focus,
+    #app-root.capture-mode .stage-input-name:focus-visible {
+      border-bottom: 0 !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+
+    #app-root.capture-mode select {
+      background-image: none !important;
+    }
+
+    #app-root.capture-mode .input-flex-wrapper input,
+    #app-root.capture-mode .input-flex-wrapper select,
+    #app-root.capture-mode .input-flex-wrapper textarea {
+      font-weight: 700 !important;
     }
   </style>
 </head>
@@ -55,7 +104,6 @@
 
 <div id="app-root" class="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
 
-  <!-- Header -->
   <div class="bg-blue-600 pt-6 pb-4 px-6 text-white relative overflow-hidden">
     <i data-lucide="bitcoin" class="absolute -right-4 -top-8 w-40 h-40 text-blue-500 opacity-40 transform rotate-[15deg] pointer-events-none"></i>
     <i data-lucide="bitcoin" class="absolute left-1/3 -bottom-10 w-32 h-32 text-blue-500 opacity-20 transform -rotate-[20deg] pointer-events-none"></i>
@@ -66,20 +114,18 @@
         <h1 class="text-xl font-bold tracking-tight">加密貨幣DCA成本壓縮計算機</h1>
       </div>
 
-      <!-- Global Mode Toggle -->
       <div class="bg-blue-700/50 rounded-lg p-1 flex text-xs font-bold shrink-0 hide-on-capture">
         <button id="btn-mode-carry" class="px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm">承接模式</button>
         <button id="btn-mode-indep" class="px-3 py-1.5 rounded-md transition-all text-blue-200 hover:text-white">獨立模式</button>
       </div>
 
-      <!-- Mode Label for Capture -->
       <div id="capture-mode-label" class="hidden show-on-capture-block text-xs font-bold bg-blue-700/50 px-2 py-1 rounded-md border border-blue-400/30">
         模式：承接模式
       </div>
     </div>
 
     <div class="relative z-10 flex items-center justify-between">
-      <p id="mode-desc" class="text-blue-100 text-sm opacity-90">承接模式：後一階段以前一階段的結果為基礎</p>
+      <p id="mode-desc" class="text-blue-100 text-sm opacity-90">後一階段以前一階段的計算結果為基礎</p>
       <div class="text-xs font-medium text-blue-200 bg-blue-700/30 px-2 py-1 rounded">
         計價：<span class="currency-name-display">TWD</span>
       </div>
@@ -88,7 +134,6 @@
 
   <div class="p-6 flex flex-col gap-6">
 
-    <!-- 初始持倉 -->
     <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2 text-sm font-bold text-slate-700">
@@ -101,23 +146,19 @@
       </div>
 
       <div class="grid grid-cols-2 gap-4">
-
         <div class="col-span-2 flex flex-col sm:flex-row gap-4 pb-3 border-b border-slate-200/60">
           <div class="space-y-1.5 flex-1">
             <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">自訂幣種名稱</label>
             <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px] bg-white w-full">
               <i data-lucide="coins" class="w-4 h-4 text-blue-400 shrink-0"></i>
-              <input type="text" id="base-coin" value="" placeholder="例如: BTC, ETH"
-                     class="base-input w-full bg-transparent outline-none font-mono font-bold text-lg h-full text-blue-700 uppercase">
+              <input type="text" id="base-coin" value="" placeholder="例如: BTC, ETH" class="base-input w-full bg-transparent outline-none font-mono font-bold text-lg h-full text-blue-700 uppercase">
             </div>
           </div>
-
           <div class="space-y-1.5 flex-1">
             <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">自訂計價幣別</label>
             <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-emerald-500 h-[44px] bg-white w-full">
               <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-500 shrink-0"></i>
-              <input type="text" id="base-currency" value="TWD" placeholder="例如: USDT, TWD"
-                     class="base-input w-full bg-transparent outline-none font-mono font-bold text-lg h-full text-emerald-700 uppercase">
+              <input type="text" id="base-currency" value="TWD" placeholder="例如: USDT, TWD" class="base-input w-full bg-transparent outline-none font-mono font-bold text-lg h-full text-emerald-700 uppercase">
             </div>
           </div>
         </div>
@@ -125,16 +166,14 @@
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">持有數量 (<span class="coin-name-display">COIN</span>)</label>
           <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px] bg-white">
-            <input type="number" step="any" id="base-qty" value="0"
-                   class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
+            <input type="number" step="any" id="base-qty" value="0" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
           </div>
         </div>
 
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5 text-blue-600">目前平均成本 (<span class="currency-name-display">TWD</span>)</label>
           <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
-            <input type="number" step="any" id="base-avg" value="0"
-                   class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
+            <input type="number" step="any" id="base-avg" value="0" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
           </div>
         </div>
 
@@ -149,18 +188,15 @@
               </select>
             </div>
             <div id="fee-val-wrapper" class="hidden input-flex-wrapper w-full flex items-center border border-slate-300 rounded-lg px-3 h-[44px] bg-white focus-within:ring-2 focus-within:ring-blue-500">
-              <input type="number" step="any" id="fee-val" value="0"
-                     class="base-input w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
+              <input type="number" step="any" id="fee-val" value="0" class="base-input w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
             </div>
           </div>
         </div>
-
       </div>
     </div>
 
     <div class="w-full h-px bg-slate-100 shrink-0"></div>
 
-    <!-- 階段列表 -->
     <div class="flex items-center justify-between">
       <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
         <i data-lucide="layers" class="w-4 h-4 text-blue-500"></i>
@@ -175,7 +211,6 @@
 
     <div class="w-full h-px bg-slate-100 shrink-0 hide-on-capture"></div>
 
-    <!-- Actions -->
     <div class="flex flex-col gap-3 hide-on-capture">
       <div class="flex gap-3">
         <button id="btn-download" class="flex-1 flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 py-3 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
@@ -202,15 +237,10 @@
         </button>
       </div>
     </div>
-
   </div>
 
-  <div class="hidden show-on-capture-block text-center pb-5 pt-2 text-[10px] text-slate-400 font-medium bg-white border-t border-slate-100">
-    Created with 加密貨幣DCA成本壓縮計算機
-  </div>
 </div>
 
-<!-- Modal: Text Output -->
 <div id="modal-text" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
   <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modal-text-content">
     <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
@@ -229,7 +259,6 @@
   </div>
 </div>
 
-<!-- Modal: JSON Import/Export -->
 <div id="modal-json" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
   <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modal-json-content">
     <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
@@ -251,39 +280,31 @@
 </div>
 
 <script>
-$(document).ready(function () {
-
-  // =========================
-  // Utils
-  // =========================
-  const Utils = {
-    formatNum(num, digits = 2) {
-      if (num === null || num === undefined || num === '' || isNaN(num)) return '-';
-      const d = Math.max(0, Math.min(12, digits));
-      return Number(num).toLocaleString('zh-TW', { minimumFractionDigits: d, maximumFractionDigits: d });
-    },
-    parseNum(v) {
-      if (v === '' || v === null || v === undefined) return null;
-      const n = parseFloat(v);
-      return Number.isFinite(n) ? n : null;
-    },
-    valOrEmpty(v) { return v === null ? '' : v; },
-    id() { return 's_' + Math.random().toString(36).substr(2, 9); },
-    nextFrame() { return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); }
+$(document).ready(function() {
+  const formatNum = (num, digits = 2) => {
+    if (num === null || num === undefined || isNaN(num) || num === '') return '-';
+    const d = Math.max(0, Math.min(12, digits));
+    return Number(num).toLocaleString('zh-TW', { minimumFractionDigits: d, maximumFractionDigits: d });
   };
 
-  // =========================
-  // State
-  // =========================
+  const parseNum = (v) => {
+    if (v === '' || v === null || v === undefined) return null;
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const valOrEmpty = (v) => v === null ? '' : v;
+  const generateId = () => 's_' + Math.random().toString(36).substr(2, 9);
+
   const getDefaultState = () => ({
     base: {
       coinName: '',
       currencyName: 'TWD',
       qty0: 0,
       avg0: 0,
-      feeType: 'none',   // none | percent | fixed
+      feeType: 'none',
       feeVal: 0,
-      carryMode: 'carry' // carry | indep
+      carryMode: 'carry'
     },
     stages: []
   });
@@ -291,60 +312,44 @@ $(document).ready(function () {
   let state = getDefaultState();
   let calculatedResults = [];
 
-  // =========================
-  // Core calc
-  // =========================
-  function calcAll() {
+  function calculate(fullRender = true) {
     calculatedResults = [];
 
     let currentQ = state.base.qty0 === null ? 0 : state.base.qty0;
     let currentC = currentQ * (state.base.avg0 === null ? 0 : state.base.avg0);
 
     state.stages.forEach((st) => {
-      const startQ = (state.base.carryMode === 'carry')
-        ? currentQ
-        : (state.base.qty0 === null ? 0 : state.base.qty0);
-
-      const startC = (state.base.carryMode === 'carry')
-        ? currentC
-        : (state.base.qty0 === null ? 0 : state.base.qty0) * (state.base.avg0 === null ? 0 : state.base.avg0);
-
-      const res = {
+      let res = {
         id: st.id,
-        startQ, startC,
-        startAvg: startQ > 0 ? startC / startQ : 0,
-        buyQty: 0,
-        costTwd: 0,
-        feeTwd: 0,
-        newQty: 0,
-        newCost: 0,
-        newAvg: 0,
-        error: null,
-        warn: null
+        startQ: state.base.carryMode === 'carry' ? currentQ : (state.base.qty0 === null ? 0 : state.base.qty0),
+        startC: state.base.carryMode === 'carry' ? currentC : (state.base.qty0 === null ? 0 : state.base.qty0) * (state.base.avg0 === null ? 0 : state.base.avg0),
+        buyQty: 0, costTwd: 0, feeTwd: 0, newQty: 0, newCost: 0, newAvg: 0,
+        error: null, warn: null
       };
+      res.startAvg = res.startQ > 0 ? res.startC / res.startQ : 0;
 
-      const P = Utils.parseNum(st.buyPrice);
+      let P = parseNum(st.buyPrice);
 
       if (P === null || P <= 0) {
-        res.error = "請輸入有效的買入價格 (大於 0)";
+        res.error = '請輸入有效的買入價格 (大於 0)';
       } else {
         if (st.mode === 'target') {
-          const T = Utils.parseNum(st.targetAvg);
-          if (T === null || T <= 0) res.error = "請輸入有效的目標成本 (大於 0)";
-          else if (P >= T && res.startAvg > T) res.error = "買入價格必須低於目標成本才能壓低均價";
-          else if (res.startAvg <= T && res.startAvg > 0) res.error = "目前均價已達標，無需買入";
+          let T = parseNum(st.targetAvg);
+          if (T === null || T <= 0) res.error = '請輸入有效的目標成本 (大於 0)';
+          else if (P >= T && res.startAvg > T) res.error = '買入價格必須低於目標成本才能壓低均價';
+          else if (res.startAvg <= T && res.startAvg > 0) res.error = '目前均價已達標，無需買入';
           else {
-            const x = (T * res.startQ - res.startC) / (P - T);
-            if (x <= 0) res.error = "數學上無法達成該目標（所需數量為負或零）";
+            let x = (T * res.startQ - res.startC) / (P - T);
+            if (x <= 0) res.error = '數學上無法達成該目標（所需數量為負或零）';
             else {
-              if (x > 1_000_000) res.warn = "所需買入數量極大，請確認目標成本與買入價格設定是否合理";
+              if (x > 1000000) res.warn = '所需買入數量極大，請確認目標成本與買入價格設定是否合理';
               res.buyQty = x;
               res.costTwd = x * P;
             }
           }
-        } else {
-          const M = Utils.parseNum(st.buyTwd);
-          if (M === null || M <= 0) res.error = "請輸入有效的投入預算 (大於 0)";
+        } else if (st.mode === 'budget') {
+          let M = parseNum(st.buyTwd);
+          if (M === null || M <= 0) res.error = '請輸入有效的投入預算 (大於 0)';
           else {
             res.buyQty = M / P;
             res.costTwd = M;
@@ -352,11 +357,10 @@ $(document).ready(function () {
         }
       }
 
-      // Fee
       if (!res.error && res.costTwd > 0) {
-        const feeVal = state.base.feeVal === null ? 0 : state.base.feeVal;
-        if (state.base.feeType === 'percent') res.feeTwd = res.costTwd * (feeVal / 100);
-        if (state.base.feeType === 'fixed') res.feeTwd = feeVal;
+        let feeSetVal = state.base.feeVal === null ? 0 : state.base.feeVal;
+        if (state.base.feeType === 'percent') res.feeTwd = res.costTwd * (feeSetVal / 100);
+        else if (state.base.feeType === 'fixed') res.feeTwd = feeSetVal;
 
         res.costTwd += res.feeTwd;
         res.newQty = res.startQ + res.buyQty;
@@ -371,70 +375,69 @@ $(document).ready(function () {
 
       calculatedResults.push(res);
     });
+
+    updateUI(fullRender);
   }
 
-  // =========================
-  // Render
-  // =========================
-  function generateResultHtml(res, coin, currency) {
+  function generateResultHtml(res, currentCoin, currentCurrency) {
+    let resultHtml = '';
     if (res.error) {
-      return `
+      resultHtml = `
         <div class="mx-4 mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm font-medium flex items-start gap-2 border border-red-100">
           <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5"></i>
           <span>${res.error}</span>
         </div>`;
-    }
+    } else if (res.buyQty > 0 || res.costTwd > 0) {
+      let warnHtml = '';
+      if (res.warn) {
+        warnHtml = `
+          <div class="mx-4 mt-2 mb-2 p-3 bg-yellow-50 text-yellow-700 rounded-lg text-sm font-medium flex items-start gap-2 border border-yellow-200">
+            <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i>
+            <span>${res.warn}</span>
+          </div>`;
+      }
 
-    if (!(res.buyQty > 0 || res.costTwd > 0)) return '';
-
-    const warnHtml = res.warn ? `
-      <div class="mx-4 mt-2 mb-2 p-3 bg-yellow-50 text-yellow-700 rounded-lg text-sm font-medium flex items-start gap-2 border border-yellow-200">
-        <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i>
-        <span>${res.warn}</span>
-      </div>` : '';
-
-    return warnHtml + `
-      <div class="pt-4 px-4 pb-4 border-t border-slate-100 stage-footer-results">
-        <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <div class="flex flex-col">
-            <span class="text-[10px] font-bold text-slate-400 uppercase">需買入數量 (<span class="coin-name-display">${coin}</span>)</span>
-            <span class="font-mono font-bold text-slate-700">${Utils.formatNum(res.buyQty, 2)}</span>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-[10px] font-bold text-slate-400 uppercase">
-              需投入資金 (<span class="currency-name-display">${currency}</span>)
-              ${res.feeTwd > 0 ? '<span class="text-red-400 text-[9px]">(含手續費)</span>' : ''}
-            </span>
-            <span class="font-mono font-bold text-slate-700">${Utils.formatNum(res.costTwd, 0)}</span>
-          </div>
-          <div class="col-span-2 border-t border-dashed border-slate-100 my-1"></div>
-          <div class="flex flex-col">
-            <span class="text-[10px] font-bold text-slate-400 uppercase">達成後數量 (<span class="coin-name-display">${coin}</span>)</span>
-            <span class="font-mono font-bold text-blue-600 text-base">${Utils.formatNum(res.newQty, 2)}</span>
-          </div>
-          <div class="flex flex-col text-right">
-            <span class="text-[10px] font-bold text-slate-400 uppercase">新平均成本</span>
-            <div class="flex items-center justify-end gap-1">
-              <span class="font-mono font-bold text-emerald-600 text-base">${Utils.formatNum(res.newAvg, 4)}</span>
-              <i data-lucide="arrow-down-right" class="w-4 h-4 text-emerald-500"></i>
+      resultHtml = warnHtml + `
+        <div class="pt-4 px-4 pb-4 border-t border-slate-100 stage-footer-results">
+          <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <div class="flex flex-col">
+              <span class="text-[10px] font-bold text-slate-400 uppercase">需買入數量 (<span class="coin-name-display">${currentCoin}</span>)</span>
+              <span class="font-mono font-bold text-slate-700">${formatNum(res.buyQty, 2)}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[10px] font-bold text-slate-400 uppercase">需投入資金 (<span class="currency-name-display">${currentCurrency}</span>) ${res.feeTwd>0 ? '<span class="text-red-400 text-[9px]">(含手續費)</span>':''}</span>
+              <span class="font-mono font-bold text-slate-700">${formatNum(res.costTwd, 0)}</span>
+            </div>
+            <div class="col-span-2 border-t border-dashed border-slate-100 my-1"></div>
+            <div class="flex flex-col">
+              <span class="text-[10px] font-bold text-slate-400 uppercase">達成後數量 (<span class="coin-name-display">${currentCoin}</span>)</span>
+              <span class="font-mono font-bold text-blue-600 text-base">${formatNum(res.newQty, 2)}</span>
+            </div>
+            <div class="flex flex-col text-right">
+              <span class="text-[10px] font-bold text-slate-400 uppercase">新平均成本</span>
+              <div class="flex items-center justify-end gap-1">
+                <span class="font-mono font-bold text-emerald-600 text-base">${formatNum(res.newAvg, 4)}</span>
+                <i data-lucide="arrow-down-right" class="w-4 h-4 text-emerald-500"></i>
+              </div>
             </div>
           </div>
-        </div>
-      </div>`;
+        </div>`;
+    }
+    return resultHtml;
   }
 
   function renderStages() {
-    const $container = $('#stages-container');
-    $container.empty();
+    const container = $('#stages-container');
+    container.empty();
 
     if (state.stages.length === 0) {
-      $container.html('<div class="text-center py-8 text-slate-400 text-sm italic bg-slate-50 rounded-xl border border-dashed border-slate-200">目前沒有設定任何階段，請點擊右上方新增。</div>');
+      container.html('<div class="text-center py-8 text-slate-400 text-sm italic bg-slate-50 rounded-xl border border-dashed border-slate-200">目前沒有設定任何階段，請點擊右上方新增。</div>');
       lucide.createIcons();
       return;
     }
 
-    const coin = state.base.coinName || 'COIN';
-    const currency = state.base.currencyName || 'TWD';
+    const currentCoin = state.base.coinName || 'COIN';
+    const currentCurrency = state.base.currencyName || 'TWD';
 
     state.stages.forEach((st, idx) => {
       const res = calculatedResults[idx];
@@ -445,16 +448,14 @@ $(document).ready(function () {
       const upDisabled = idx === 0;
       const downDisabled = idx === state.stages.length - 1;
 
-      const resultHtml = generateResultHtml(res, coin, currency);
+      const resultHtml = generateResultHtml(res, currentCoin, currentCurrency);
 
-      $container.append(`
+      const html = `
         <div class="stage-card bg-white rounded-xl border border-slate-200 shadow-sm relative transition-all ${collapsedClass}" data-id="${st.id}">
           <div class="px-4 py-3 flex items-center justify-between cursor-pointer btn-toggle-collapse">
             <div class="flex items-center gap-3">
               <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">${idx + 1}</div>
-              <input type="text" value="${st.name}"
-                     class="stage-input-name font-mono font-bold text-slate-700 bg-transparent outline-none w-40 sm:w-64 focus:border-b border-blue-400"
-                     data-field="name">
+              <input type="text" value="${st.name}" class="stage-input-name font-mono font-bold text-slate-700 bg-transparent outline-none w-40 sm:w-64 focus:border-b border-blue-400" data-field="name">
             </div>
             <div class="flex items-center gap-1 shrink-0 hide-on-capture">
               <button class="btn-move-up p-1.5 rounded transition-colors ${upDisabled ? 'text-slate-200 cursor-not-allowed' : 'text-slate-300 hover:text-blue-500 hover:bg-blue-50'}" title="上移" ${upDisabled ? 'disabled' : ''}><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
@@ -469,68 +470,83 @@ $(document).ready(function () {
           <div class="stage-body px-4 pb-4">
             <div class="grid grid-cols-2 gap-4 mt-2">
               <div class="space-y-1.5 col-span-2 sm:col-span-1">
-                <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">
-                  預計買入價格 (<span class="currency-name-display">${currency}</span>)
-                </label>
+                <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">預計買入價格 (<span class="currency-name-display">${currentCurrency}</span>)</label>
                 <div class="input-flex-wrapper flex items-center border border-slate-300 bg-white rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[40px]">
-                  <input type="number" step="any" value="${Utils.valOrEmpty(st.buyPrice)}" data-field="buyPrice"
-                         class="stage-input w-full bg-transparent outline-none font-mono text-sm font-semibold h-full text-slate-700">
+                  <input type="number" step="any" value="${valOrEmpty(st.buyPrice)}" data-field="buyPrice" class="stage-input w-full bg-transparent outline-none font-mono text-sm font-semibold h-full text-slate-700">
                 </div>
               </div>
 
               <div class="space-y-1.5 col-span-2 sm:col-span-1">
                 <div class="flex items-center justify-between h-5">
-                  <label class="text-xs font-bold text-slate-500 uppercase">
-                    ${isTarget ? '目標平均成本' : '預計投入預算'} (<span class="currency-name-display">${currency}</span>)
-                  </label>
+                  <label class="text-xs font-bold text-slate-500 uppercase">${isTarget ? '目標平均成本' : '預計投入預算'} (<span class="currency-name-display">${currentCurrency}</span>)</label>
                   <button class="btn-toggle-mode text-[10px] font-bold text-blue-500 hover:text-blue-700 bg-blue-50 px-2 py-0.5 rounded flex items-center gap-1 hide-on-capture">
                     <i data-lucide="refresh-cw" class="w-3 h-3"></i> 切換模式
                   </button>
                 </div>
                 <div class="input-flex-wrapper flex items-center border ${isTarget ? 'border-emerald-200 bg-emerald-50/50' : 'border-orange-200 bg-orange-50/50'} rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-${isTarget ? 'emerald' : 'orange'}-500 h-[40px]">
-                  <input type="number" step="any"
-                         value="${isTarget ? Utils.valOrEmpty(st.targetAvg) : Utils.valOrEmpty(st.buyTwd)}"
-                         data-field="${isTarget ? 'targetAvg' : 'buyTwd'}"
-                         class="stage-input w-full bg-transparent outline-none font-mono text-sm font-semibold h-full text-${isTarget ? 'emerald' : 'orange'}-700">
+                  <input type="number" step="any" value="${isTarget ? valOrEmpty(st.targetAvg) : valOrEmpty(st.buyTwd)}" data-field="${isTarget ? 'targetAvg' : 'buyTwd'}" class="stage-input w-full bg-transparent outline-none font-mono text-sm font-semibold h-full text-${isTarget ? 'emerald' : 'orange'}-700">
                 </div>
               </div>
             </div>
           </div>
 
           <div class="stage-result-container">${resultHtml}</div>
-        </div>
-      `);
+        </div>`;
+
+      container.append(html);
     });
 
     lucide.createIcons();
   }
 
-  function updateBaseUI() {
-    if (document.activeElement.id !== 'base-coin') $('#base-coin').val(Utils.valOrEmpty(state.base.coinName));
+  function updateStageResultsOnly() {
+    const currentCoin = state.base.coinName || 'COIN';
+    const currentCurrency = state.base.currencyName || 'TWD';
+
+    state.stages.forEach((st, idx) => {
+      const res = calculatedResults[idx];
+      const card = $(`.stage-card[data-id="${st.id}"]`);
+      if (!card.length) return;
+
+      const nameInput = card.find('.stage-input-name');
+      if (!nameInput.is(':focus')) nameInput.val(st.name);
+
+      const buyPriceInput = card.find('[data-field="buyPrice"]');
+      if (!buyPriceInput.is(':focus')) buyPriceInput.val(valOrEmpty(st.buyPrice));
+
+      const targetInput = card.find('[data-field="targetAvg"], [data-field="buyTwd"]');
+      if (!targetInput.is(':focus')) targetInput.val(valOrEmpty(st.mode === 'target' ? st.targetAvg : st.buyTwd));
+
+      const resultHtml = generateResultHtml(res, currentCoin, currentCurrency);
+      card.find('.stage-result-container').html(resultHtml);
+    });
+
+    lucide.createIcons();
+  }
+
+  function updateUI(fullRender = true) {
+    if (document.activeElement.id !== 'base-coin') $('#base-coin').val(valOrEmpty(state.base.coinName));
     if (document.activeElement.id !== 'base-currency') $('#base-currency').val(state.base.currencyName || 'TWD');
-    if (document.activeElement.id !== 'base-qty') $('#base-qty').val(Utils.valOrEmpty(state.base.qty0));
-    if (document.activeElement.id !== 'base-avg') $('#base-avg').val(Utils.valOrEmpty(state.base.avg0));
+    if (document.activeElement.id !== 'base-qty') $('#base-qty').val(valOrEmpty(state.base.qty0));
+    if (document.activeElement.id !== 'base-avg') $('#base-avg').val(valOrEmpty(state.base.avg0));
 
-    const q = state.base.qty0 === null ? 0 : state.base.qty0;
-    const avg = state.base.avg0 === null ? 0 : state.base.avg0;
-    $('#base-total').text(Utils.formatNum(q * avg, 0));
+    const currentQ = state.base.qty0 === null ? 0 : state.base.qty0;
+    const currentAvg = state.base.avg0 === null ? 0 : state.base.avg0;
+    $('#base-total').text(formatNum(currentQ * currentAvg, 0));
 
-    const coin = state.base.coinName || 'COIN';
-    const currency = state.base.currencyName || 'TWD';
-    $('.coin-name-display').text(coin);
-    $('.currency-name-display').text(currency);
-    $('#fee-opt-fixed').text('固定 (' + currency + ')');
+    $('.coin-name-display').text(state.base.coinName || 'COIN');
+    const currentCurrency = state.base.currencyName || 'TWD';
+    $('.currency-name-display').text(currentCurrency);
+    $('#fee-opt-fixed').text('固定 (' + currentCurrency + ')');
 
-    // Fee UI
     $('#fee-type').val(state.base.feeType);
     if (state.base.feeType !== 'none') {
       $('#fee-val-wrapper').removeClass('hidden').addClass('flex');
-      if (document.activeElement.id !== 'fee-val') $('#fee-val').val(Utils.valOrEmpty(state.base.feeVal));
+      if (document.activeElement.id !== 'fee-val') $('#fee-val').val(valOrEmpty(state.base.feeVal));
     } else {
       $('#fee-val-wrapper').addClass('hidden').removeClass('flex');
     }
 
-    // Mode UI
     if (state.base.carryMode === 'carry') {
       $('#btn-mode-carry').attr('class', 'px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm');
       $('#btn-mode-indep').attr('class', 'px-3 py-1.5 rounded-md transition-all text-blue-200 hover:text-white');
@@ -542,266 +558,112 @@ $(document).ready(function () {
       $('#mode-desc').text('獨立模式：所有階段皆以「初始持倉」為基礎計算');
       $('#capture-mode-label').text('模式：獨立模式');
     }
-  }
 
-  function recomputeAndRender(fullRender = true) {
-    calcAll();
-    updateBaseUI();
     if (fullRender) renderStages();
-    else {
-      // 小更新：直接重新 render（邏輯簡單、避免邊緣狀況）
-      renderStages();
-    }
+    else updateStageResultsOnly();
   }
 
-  // =========================
-  // Capture (最穩：用 inline style 強制清掉 input 外觀)
-  // =========================
-  async function captureCard(action) {
-    const card = document.getElementById('app-root');
-    if (!card) return;
+  $('#btn-mode-carry').click(() => { state.base.carryMode = 'carry'; calculate(true); });
+  $('#btn-mode-indep').click(() => { state.base.carryMode = 'indep'; calculate(true); });
 
-    const patched = [];
-    const rememberAndSet = (el, styles) => {
-      patched.push([el, el.getAttribute('style')]);
-      for (const [k, v] of Object.entries(styles)) el.style.setProperty(k, v, 'important');
-    };
-
-    const $hide = $('.hide-on-capture');
-    const $show = $('.show-on-capture-block');
-
-    try {
-      await document.fonts.ready;
-
-      if (document.activeElement && typeof document.activeElement.blur === 'function') {
-        document.activeElement.blur();
-      }
-
-      card.classList.add('capture-mode');
-
-      // 顯示截圖用標籤/水印
-      $show.each(function () {
-        this.classList.remove('hidden');
-        this.style.setProperty('display', 'block', 'important');
-      });
-      $hide.addClass('hidden-force');
-
-      // 核心：只把「輸入框本體」變成像文字
-      card.querySelectorAll('.input-flex-wrapper').forEach(el => {
-        rememberAndSet(el, {
-          'background': 'transparent',
-          'background-color': 'transparent',
-          'border': '0',
-          'border-width': '0',
-          'border-color': 'transparent',
-          'box-shadow': 'none',
-          'padding': '0',
-          'border-radius': '0'
-        });
-      });
-
-      card.querySelectorAll('.input-flex-wrapper input, .input-flex-wrapper select, .input-flex-wrapper textarea').forEach(el => {
-        rememberAndSet(el, {
-          'background': 'transparent',
-          'background-color': 'transparent',
-          'border': '0',
-          'border-width': '0',
-          'border-color': 'transparent',
-          'box-shadow': 'none',
-          'outline': 'none',
-          'caret-color': 'transparent'
-        });
-      });
-
-      // stage 名稱底線
-      card.querySelectorAll('.stage-input-name').forEach(el => {
-        rememberAndSet(el, { 'border-bottom': '0', 'box-shadow': 'none', 'outline': 'none' });
-      });
-
-      lucide.createIcons();
-      await Utils.nextFrame();
-
-      const dataUrl = await modernScreenshot.domToPng(card, {
-        backgroundColor: '#ffffff',
-        scale: 3,
-        filter: (n) => !(n.classList && n.classList.contains('hide-on-capture'))
-      });
-
-      if (action === 'download') {
-        const a = document.createElement('a');
-        const coinName = (state.base.coinName || 'COIN').toUpperCase();
-        a.download = `${coinName}-DCA-report-${Date.now()}.png`;
-        a.href = dataUrl;
-        a.click();
-      } else {
-        const blob = await (await fetch(dataUrl)).blob();
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-
-        $('#icon-copy-img').replaceWith('<i id="icon-copy-img" data-lucide="check" class="w-4 h-4"></i>');
-        $('#text-copy-img').text('已複製截圖！');
-        lucide.createIcons();
-
-        setTimeout(() => {
-          $('#icon-copy-img').replaceWith('<i id="icon-copy-img" data-lucide="copy" class="w-4 h-4"></i>');
-          $('#text-copy-img').text('複製截圖');
-          lucide.createIcons();
-        }, 1800);
-      }
-
-    } catch (e) {
-      console.error(e);
-      const $btn = (action === 'download') ? $('#btn-download') : $('#btn-copy-img');
-      const orig = $btn.html();
-      $btn.html('<i data-lucide="x-circle" class="w-4 h-4"></i> <span class="text-red-500 font-bold">處理失敗</span>');
-      lucide.createIcons();
-      setTimeout(() => { $btn.html(orig); lucide.createIcons(); }, 2000);
-    } finally {
-      // restore styles
-      for (const [el, oldStyle] of patched) {
-        if (oldStyle === null) el.removeAttribute('style');
-        else el.setAttribute('style', oldStyle);
-      }
-
-      card.classList.remove('capture-mode');
-
-      $hide.removeClass('hidden-force');
-      $show.each(function () {
-        this.classList.add('hidden');
-        this.style.removeProperty('display');
-      });
-    }
-  }
-
-  // =========================
-  // Modals
-  // =========================
-  function showModal(id) {
-    $(`#${id}`).removeClass('hidden');
-    setTimeout(() => $(`#${id}-content`).removeClass('scale-95 opacity-0').addClass('scale-100 opacity-100'), 10);
-  }
-  function hideModal(id) {
-    $(`#${id}-content`).removeClass('scale-100 opacity-100').addClass('scale-95 opacity-0');
-    setTimeout(() => $(`#${id}`).addClass('hidden'), 200);
-  }
-
-  // =========================
-  // Events
-  // =========================
-  $('#btn-mode-carry').click(() => { state.base.carryMode = 'carry'; recomputeAndRender(true); });
-  $('#btn-mode-indep').click(() => { state.base.carryMode = 'indep'; recomputeAndRender(true); });
-
-  $('.base-input').on('change input', function () {
+  $('.base-input').on('change input', function() {
     const id = $(this).attr('id');
     const val = $(this).val();
 
     if (id === 'base-coin') {
       state.base.coinName = String(val || '').toUpperCase();
-      recomputeAndRender(false);
+      $('.coin-name-display').text(state.base.coinName || 'COIN');
+      calculate(false);
       return;
     }
+
     if (id === 'base-currency') {
       state.base.currencyName = String(val || '').toUpperCase();
-      recomputeAndRender(true);
+      const curr = state.base.currencyName || 'TWD';
+      $('.currency-name-display').text(curr);
+      $('#fee-opt-fixed').text('固定 (' + curr + ')');
+      calculate(true);
       return;
     }
 
-    if (id === 'base-qty') state.base.qty0 = Utils.parseNum(val);
-    if (id === 'base-avg') state.base.avg0 = Utils.parseNum(val);
-
+    if (id === 'base-qty') state.base.qty0 = parseNum(val);
+    if (id === 'base-avg') state.base.avg0 = parseNum(val);
     if (id === 'fee-type') {
       state.base.feeType = val;
       if (val === 'percent') state.base.feeVal = 0.1;
       if (val === 'fixed') state.base.feeVal = 30;
     }
-    if (id === 'fee-val') state.base.feeVal = Utils.parseNum(val);
+    if (id === 'fee-val') state.base.feeVal = parseNum(val);
 
-    recomputeAndRender(false);
+    calculate(false);
   });
 
-  $('#stages-container').on('change input', '.stage-input, .stage-input-name', function (e) {
-    const $card = $(this).closest('.stage-card');
-    const stageId = $card.data('id');
+  $('#stages-container').on('change input', '.stage-input, .stage-input-name', function(e) {
+    const stageCard = $(this).closest('.stage-card');
+    const stageId = stageCard.data('id');
     const field = $(this).data('field');
     const val = $(this).val();
 
-    const idx = state.stages.findIndex(s => s.id === stageId);
-    if (idx === -1) return;
-
-    if (field === 'name') state.stages[idx].name = val;
-    else state.stages[idx][field] = Utils.parseNum(val);
-
-    if (e.type === 'change' || e.type === 'input') recomputeAndRender(false);
+    const stageIndex = state.stages.findIndex(s => s.id === stageId);
+    if (stageIndex > -1) {
+      if (field === 'name') state.stages[stageIndex].name = val;
+      else state.stages[stageIndex][field] = parseNum(val);
+      if (e.type === 'change' || e.type === 'input') calculate(false);
+    }
   });
 
   $('#stages-container')
-    .on('click', '.btn-toggle-collapse', function (e) {
+    .on('click', '.btn-toggle-collapse', function(e) {
       if ($(e.target).closest('input, button').length) return;
       const stageId = $(this).closest('.stage-card').data('id');
       const st = state.stages.find(s => s.id === stageId);
-      if (!st) return;
-      st.collapsed = !st.collapsed;
-      recomputeAndRender(true);
+      if (st) { st.collapsed = !st.collapsed; updateUI(true); }
     })
-    .on('click', '.btn-toggle-mode', function () {
+    .on('click', '.btn-toggle-mode', function() {
       const stageId = $(this).closest('.stage-card').data('id');
       const st = state.stages.find(s => s.id === stageId);
-      if (!st) return;
-      st.mode = (st.mode === 'target') ? 'budget' : 'target';
-      recomputeAndRender(true);
+      if (st) { st.mode = st.mode === 'target' ? 'budget' : 'target'; calculate(true); }
     })
-    .on('click', '.btn-delete', function () {
+    .on('click', '.btn-delete', function() {
       const stageId = $(this).closest('.stage-card').data('id');
       state.stages = state.stages.filter(s => s.id !== stageId);
-      recomputeAndRender(true);
+      calculate(true);
     })
-    .on('click', '.btn-copy', function () {
+    .on('click', '.btn-copy', function() {
       const stageId = $(this).closest('.stage-card').data('id');
-      const idx = state.stages.findIndex(s => s.id === stageId);
-      if (idx === -1) return;
-      const cloned = JSON.parse(JSON.stringify(state.stages[idx]));
-      cloned.id = Utils.id();
-      cloned.name = (cloned.name || '階段') + ' (複製)';
-      state.stages.splice(idx + 1, 0, cloned);
-      recomputeAndRender(true);
-    })
-    .on('click', '.btn-move-up', function () {
-      const stageId = $(this).closest('.stage-card').data('id');
-      const idx = state.stages.findIndex(s => s.id === stageId);
-      if (idx > 0) {
-        [state.stages[idx - 1], state.stages[idx]] = [state.stages[idx], state.stages[idx - 1]];
-        recomputeAndRender(true);
+      const st = state.stages.find(s => s.id === stageId);
+      if (st) {
+        const newSt = JSON.parse(JSON.stringify(st));
+        newSt.id = generateId();
+        newSt.name += ' (複製)';
+        const idx = state.stages.findIndex(s => s.id === stageId);
+        state.stages.splice(idx + 1, 0, newSt);
+        calculate(true);
       }
     })
-    .on('click', '.btn-move-down', function () {
+    .on('click', '.btn-move-up', function() {
       const stageId = $(this).closest('.stage-card').data('id');
       const idx = state.stages.findIndex(s => s.id === stageId);
-      if (idx !== -1 && idx < state.stages.length - 1) {
-        [state.stages[idx + 1], state.stages[idx]] = [state.stages[idx], state.stages[idx + 1]];
-        recomputeAndRender(true);
-      }
+      if (idx > 0) { [state.stages[idx-1], state.stages[idx]] = [state.stages[idx], state.stages[idx-1]]; calculate(true); }
+    })
+    .on('click', '.btn-move-down', function() {
+      const stageId = $(this).closest('.stage-card').data('id');
+      const idx = state.stages.findIndex(s => s.id === stageId);
+      if (idx < state.stages.length - 1) { [state.stages[idx+1], state.stages[idx]] = [state.stages[idx], state.stages[idx+1]]; calculate(true); }
     });
 
   $('#btn-add-stage').click(() => {
-    state.stages.push({
-      id: Utils.id(),
-      name: "新階段 " + (state.stages.length + 1),
-      targetAvg: 0,
-      buyPrice: 0,
-      mode: "target",
-      buyTwd: 0,
-      collapsed: false
-    });
-    recomputeAndRender(true);
+    state.stages.push({ id: generateId(), name: '新階段 ' + (state.stages.length + 1), targetAvg: 0, buyPrice: 0, mode: 'target', buyTwd: 0, collapsed: false });
+    calculate(true);
     setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
   });
 
-  // reset (雙擊確認)
   let resetTimeout;
-  $('#btn-reset').click(function () {
+  $('#btn-reset').click(function() {
     const $btn = $(this);
     if ($btn.data('confirm')) {
       state = getDefaultState();
-      recomputeAndRender(true);
+      calculate(true);
 
       $btn.data('confirm', false)
         .html('<i data-lucide="rotate-ccw" class="w-4 h-4"></i> 重設策略')
@@ -826,33 +688,67 @@ $(document).ready(function () {
     }
   });
 
-  // capture buttons
-  $('#btn-download').click(() => captureCard('download'));
-  $('#btn-copy-img').click(() => captureCard('copy'));
+    async function handleCapture(action) {
+      const card = document.getElementById('app-root');
+      if (!card) return;
 
-  if (!(typeof ClipboardItem !== 'undefined' && !!navigator.clipboard && !!navigator.clipboard.write && window.location.protocol !== 'blob:')) {
+      try {
+        await document.fonts.ready;
+          
+        card.classList.add('capture-mode');
+          
+        const dataUrl = await modernScreenshot.domToPng(card, {
+          backgroundColor: '#ffffff',
+          scale: 3,
+          filter: (n) => !(n.classList && n.classList.contains('hide-on-capture'))
+        });
+
+        if (action === 'download') {
+          const a = document.createElement('a');
+          a.download = `dca-report-${Date.now()}.png`;
+          a.href = dataUrl;
+          a.click();
+        } else {
+          const blob = await (await fetch(dataUrl)).blob();
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        }
+
+      } catch (e) {
+        console.error(e);
+      } finally {
+        card.classList.remove('capture-mode');
+      }
+    }
+
+  $('#btn-download').click(() => handleCapture('download'));
+  $('#btn-copy-img').click(() => handleCapture('copy'));
+
+  if (typeof ClipboardItem !== 'undefined' && !!navigator.clipboard && !!navigator.clipboard.write && window.location.protocol !== 'blob:') {
+  } else {
     $('#btn-copy-img').prop('disabled', true).addClass('opacity-50').attr('title', '您的瀏覽器或預覽環境不支援直接複製圖片');
   }
 
-  // modals close
-  $('.btn-close-modal').click(function () {
-    hideModal($(this).closest('.fixed').attr('id'));
-  });
+  function showModal(id) {
+    $(`#${id}`).removeClass('hidden');
+    setTimeout(() => { $(`#${id}-content`).removeClass('scale-95 opacity-0').addClass('scale-100 opacity-100'); }, 10);
+  }
+  function hideModal(id) {
+    $(`#${id}-content`).removeClass('scale-100 opacity-100').addClass('scale-95 opacity-0');
+    setTimeout(() => { $(`#${id}`).addClass('hidden'); }, 200);
+  }
+  $('.btn-close-modal').click(function() { hideModal($(this).closest('.fixed').attr('id')); });
 
-  // export text
   $('#btn-export-text').click(() => {
     const coin = state.base.coinName || 'COIN';
     const currency = state.base.currencyName || 'TWD';
 
-    let text = `【加密貨幣DCA成本壓縮計算機試算報告 - ${coin}】\n`;
-    text += `計算模式：${state.base.carryMode === 'carry' ? '承接模式 (接續計算)' : '獨立模式 (各階段各自計算)'}\n\n`;
-
+    let text = `【加密貨幣DCA成本壓縮計算機試算報告 - ${coin}】\n計算模式：${state.base.carryMode === 'carry' ? '承接模式 (接續計算)' : '獨立模式 (各階段各自計算)'}\n\n`;
     text += `[初始持倉]\n`;
-    text += `目前數量：${Utils.formatNum(state.base.qty0, 4)} ${coin}\n`;
-    text += `平均成本：${Utils.formatNum(state.base.avg0, 4)} ${currency}\n`;
-    text += `總計成本：${Utils.formatNum((state.base.qty0 || 0) * (state.base.avg0 || 0), 0)} ${currency}\n`;
+    text += `目前數量：${formatNum(state.base.qty0, 4)} ${coin}\n`;
+    text += `平均成本：${formatNum(state.base.avg0, 4)} ${currency}\n`;
+    text += `總計成本：${formatNum((state.base.qty0 || 0) * (state.base.avg0 || 0), 0)} ${currency}\n`;
 
-    let feeStr = "無";
+    let feeStr = '無';
     if (state.base.feeType === 'percent') feeStr = `${state.base.feeVal}%`;
     if (state.base.feeType === 'fixed') feeStr = `${state.base.feeVal} ${currency}`;
     text += `手續費設定：${feeStr}\n\n`;
@@ -861,40 +757,39 @@ $(document).ready(function () {
     state.stages.forEach((st, idx) => {
       const res = calculatedResults[idx];
       text += `[階段 ${idx + 1}: ${st.name}]\n`;
-      text += `買入價格：${Utils.formatNum(st.buyPrice, 4)} ${currency}\n`;
-      if (st.mode === 'target') text += `目標成本：${Utils.formatNum(st.targetAvg, 4)} ${currency}\n`;
-      else text += `投入預算：${Utils.formatNum(st.buyTwd, 0)} ${currency}\n`;
+      text += `買入價格：${formatNum(st.buyPrice, 4)} ${currency}\n`;
+      if (st.mode === 'target') text += `目標成本：${formatNum(st.targetAvg, 4)} ${currency}\n`;
+      else text += `投入預算：${formatNum(st.buyTwd, 0)} ${currency}\n`;
 
       text += `-------------------------\n`;
       if (res.error) {
         text += `❌ 試算失敗：${res.error}\n\n`;
       } else {
         if (res.warn) text += `⚠️ 注意：${res.warn}\n`;
-        text += `需買入數量：${Utils.formatNum(res.buyQty, 4)} ${coin}\n`;
-        text += `需投入資金：${Utils.formatNum(res.costTwd, 0)} ${currency} (含手續費 ${Utils.formatNum(res.feeTwd, 0)} ${currency})\n`;
-        text += `達成後總數量：${Utils.formatNum(res.newQty, 4)} ${coin}\n`;
-        text += `達成後總成本：${Utils.formatNum(res.newCost, 0)} ${currency}\n`;
-        text += `達成後平均成本：${Utils.formatNum(res.newAvg, 4)} ${currency}\n`;
-        text += `(均價降低：${Utils.formatNum(res.startAvg - res.newAvg, 4)} ${currency})\n\n`;
+        text += `需買入數量：${formatNum(res.buyQty, 4)} ${coin}\n`;
+        text += `需投入資金：${formatNum(res.costTwd, 0)} ${currency} (含手續費 ${formatNum(res.feeTwd, 0)} ${currency})\n`;
+        text += `達成後總數量：${formatNum(res.newQty, 4)} ${coin}\n`;
+        text += `達成後總成本：${formatNum(res.newCost, 0)} ${currency}\n`;
+        text += `達成後平均成本：${formatNum(res.newAvg, 4)} ${currency}\n`;
+        let drop = res.startAvg - res.newAvg;
+        text += `(均價降低：${formatNum(drop, 4)} ${currency})\n\n`;
       }
     });
 
     $('#text-output-area').val(text);
     showModal('modal-text');
-    lucide.createIcons();
   });
 
-  $('#btn-copy-text').click(function () {
+  $('#btn-copy-text').click(function() {
     const ta = document.getElementById('text-output-area');
     ta.select();
     document.execCommand('copy');
-    const orig = $(this).html();
+    const origText = $(this).html();
     $(this).html('<i data-lucide="check" class="w-4 h-4"></i> 已複製');
     lucide.createIcons();
-    setTimeout(() => { $(this).html(orig); lucide.createIcons(); }, 1500);
+    setTimeout(() => { $(this).html(origText); lucide.createIcons(); }, 2000);
   });
 
-  // JSON IO
   let jsonMode = 'export';
   $('#btn-export-json').click(() => {
     jsonMode = 'export';
@@ -904,69 +799,57 @@ $(document).ready(function () {
     $('#json-io-area').val(JSON.stringify(state, null, 2)).prop('readonly', true).removeClass('border-red-500');
     $('#json-error').addClass('hidden');
     $('#btn-json-action').html('<i data-lucide="copy" class="w-4 h-4"></i> 複製 JSON');
-
-    showModal('modal-json');
     lucide.createIcons();
+    showModal('modal-json');
   });
 
   $('#btn-import-json').click(() => {
     jsonMode = 'import';
     $('#modal-json-title').html('<i data-lucide="upload" class="w-4 h-4 text-blue-500"></i> 匯入 JSON 設定');
     $('#modal-json-desc').text('請貼上您之前保存的 JSON 設定檔。注意：這將會覆蓋目前所有設定。');
-
     $('#json-io-area').val('').prop('readonly', false).removeClass('border-red-500');
     $('#json-error').addClass('hidden');
     $('#btn-json-action').html('<i data-lucide="check" class="w-4 h-4"></i> 確認匯入');
-
-    showModal('modal-json');
     lucide.createIcons();
+    showModal('modal-json');
   });
 
-  $('#btn-json-action').click(function () {
+  $('#btn-json-action').click(function() {
     if (jsonMode === 'export') {
       const ta = document.getElementById('json-io-area');
       ta.select();
       document.execCommand('copy');
       $(this).html('<i data-lucide="check" class="w-4 h-4"></i> 已複製');
       lucide.createIcons();
-      setTimeout(() => hideModal('modal-json'), 800);
-      return;
-    }
-
-    try {
-      const imported = JSON.parse($('#json-io-area').val());
-      if (!imported || typeof imported !== 'object' || !imported.base || !Array.isArray(imported.stages)) {
-        throw new Error('bad schema');
+      setTimeout(() => { hideModal('modal-json'); }, 1000);
+    } else {
+      try {
+        const imported = JSON.parse($('#json-io-area').val());
+        if (imported && typeof imported === 'object' && imported.base && Array.isArray(imported.stages)) {
+          state = imported;
+          state.base.coinName = state.base.coinName || '';
+          state.base.currencyName = state.base.currencyName || 'TWD';
+          state.base.qty0 = parseNum(state.base.qty0);
+          state.base.avg0 = parseNum(state.base.avg0);
+          state.base.feeVal = parseNum(state.base.feeVal);
+          calculate(true);
+          hideModal('modal-json');
+        } else {
+          throw new Error('格式缺少必要欄位');
+        }
+      } catch (e) {
+        $('#json-io-area').addClass('border-red-500');
+        $('#json-error').removeClass('hidden');
       }
-
-      state = imported;
-
-      state.base.coinName = state.base.coinName || '';
-      state.base.currencyName = state.base.currencyName || 'TWD';
-      state.base.qty0 = Utils.parseNum(state.base.qty0);
-      state.base.avg0 = Utils.parseNum(state.base.avg0);
-      state.base.feeVal = Utils.parseNum(state.base.feeVal);
-
-      recomputeAndRender(true);
-      hideModal('modal-json');
-
-    } catch (e) {
-      $('#json-io-area').addClass('border-red-500');
-      $('#json-error').removeClass('hidden');
     }
   });
 
-  // wheel disable for number input
-  document.addEventListener('wheel', function () {
+  document.addEventListener('wheel', function() {
     if (document.activeElement && document.activeElement.type === 'number') document.activeElement.blur();
   });
 
-  // =========================
-  // Init
-  // =========================
-  recomputeAndRender(true);
+  calculate();
   lucide.createIcons();
-
 });
 </script>
 
