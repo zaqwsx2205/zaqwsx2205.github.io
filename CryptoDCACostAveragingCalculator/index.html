@@ -54,12 +54,52 @@
         .hidden-force { display: none !important; }
         
         /* 隱藏外層 Wrapper 的背景與線框，保留 padding 避免文字貼邊 */
-        .capture-mode .input-flex-wrapper {
-            border-color: transparent !important;
-            background: transparent !important;
-            background-color: transparent !important;
-            box-shadow: none !important;
-        }
+/* === Capture Mode: match Crypto Card Calculator look === */
+
+/* 1) 全面關掉 Tailwind ring（避免 focus-within:ring-2 在截圖留下框） */
+.capture-mode,
+.capture-mode * {
+  --tw-ring-inset: initial !important;
+  --tw-ring-offset-width: 0px !important;
+  --tw-ring-offset-color: transparent !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+}
+
+/* 2) wrapper 去邊框/去底色/去陰影/去 padding（跟卡交易計算機一致） */
+.capture-mode .input-flex-wrapper {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* 3) input/select 全部去邊框/去底色/去外框/去陰影 */
+.capture-mode input,
+.capture-mode select,
+.capture-mode textarea {
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  caret-color: transparent !important; /* 隱藏游標 */
+}
+
+/* 4) 避免 stage 名稱那條 focus:border-b 在截圖出現底線 */
+.capture-mode .stage-input-name {
+  border-bottom: none !important;
+}
+
+/* 5) 保險：任何 focus 狀態都不要出現外框或陰影 */
+.capture-mode :focus,
+.capture-mode :focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
         
         /* 隱藏下邊框 (針對自訂幣種區塊與階段名稱) */
         .capture-mode .border-b,
@@ -743,41 +783,45 @@ $(document).ready(function() {
     async function handleCapture(action) {
       const card = document.getElementById('app-root');
       if (!card) return;
-    
+
       // 1) 記錄目前 UI 狀態，確保能完整還原
       const $hide = $('.hide-on-capture');
       const $show = $('.show-on-capture-block');
-    
+
       // 記錄：哪些 stage 原本是 collapsed（截圖時展開，截完再還原）
       const collapsedIds = [];
       state.stages.forEach(st => { if (st.collapsed) collapsedIds.push(st.id); });
-    
+
       // 記錄按鈕原始內容（失敗/成功提示後可還原）
       const $btnDownload = $('#btn-download');
       const $btnCopy = $('#btn-copy-img');
       const origDownloadHtml = $btnDownload.html();
       const origCopyHtml = $btnCopy.html();
-    
+
       // 小工具：等下一個 repaint，確保 DOM / icon / layout 都穩定
       const nextFrame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    
+
       try {
         // 2) 字型先就緒
         await document.fonts.ready;
-    
+
+if (document.activeElement && typeof document.activeElement.blur === 'function') {
+  document.activeElement.blur();
+}
+
         // 3) 進入截圖模式：套 CSS 覆蓋、隱藏/顯示指定元素
         card.classList.add('capture-mode');
-    
+
         // 顯示截圖用標籤、浮水印
         // 用 inline style 強制蓋過你 CSS 的 display:none !important（最穩）
         $show.each(function () {
           this.classList.remove('hidden');
           this.style.setProperty('display', 'block', 'important');
         });
-    
+
         // 隱藏操作按鈕區
         $hide.addClass('hidden-force');
-    
+
         // 4) 截圖時自動展開所有 collapsed stage，避免截到空的 body
         // 做法：把 state 裡 collapsed 全設為 false，重新渲染一次
         if (collapsedIds.length > 0) {
@@ -787,11 +831,11 @@ $(document).ready(function() {
           // 就算沒展開，也做一次 UI 更新，確保 capture label 文字正確
           updateUI(false);
         }
-    
+
         // 5) 確保 icon 都已經插入 SVG（lucide 需要）
         lucide.createIcons();
         await nextFrame();
-    
+
         // 6) 產 PNG
         const dataUrl = await modernScreenshot.domToPng(card, {
           backgroundColor: '#ffffff',
@@ -799,7 +843,7 @@ $(document).ready(function() {
           // 你已經用 hidden-force 隱藏了，但保留 filter 做雙重保險
           filter: (n) => !(n.classList && n.classList.contains('hide-on-capture'))
         });
-    
+
         // 7) 下載 or 複製
         if (action === 'download') {
           const a = document.createElement('a');
@@ -807,30 +851,30 @@ $(document).ready(function() {
           a.download = `${coinName}-DCA-report-${Date.now()}.png`;
           a.href = dataUrl;
           a.click();
-    
+
           // 成功提示（可選）
           $btnDownload.html('<i data-lucide="check" class="w-4 h-4"></i> 已下載');
           lucide.createIcons();
           setTimeout(() => $btnDownload.html(origDownloadHtml), 1200);
-    
+
         } else {
           const blob = await (await fetch(dataUrl)).blob();
           await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    
+
           $('#icon-copy-img').replaceWith('<i id="icon-copy-img" data-lucide="check" class="w-4 h-4"></i>');
           $('#text-copy-img').text('已複製截圖！');
           lucide.createIcons();
-    
+
           setTimeout(() => {
             $('#icon-copy-img').replaceWith('<i id="icon-copy-img" data-lucide="copy" class="w-4 h-4"></i>');
             $('#text-copy-img').text('複製截圖');
             lucide.createIcons();
           }, 1800);
         }
-    
+
       } catch (e) {
         console.error(e);
-    
+
         // 失敗提示（不跳 alert，避免 iframe / 權限阻擋）
         const $btn = action === 'download' ? $btnDownload : $btnCopy;
         $btn.html('<i data-lucide="x-circle" class="w-4 h-4"></i> <span class="text-red-500 font-bold">截圖失敗</span>');
@@ -839,18 +883,18 @@ $(document).ready(function() {
           $btn.html(action === 'download' ? origDownloadHtml : origCopyHtml);
           lucide.createIcons();
         }, 1800);
-    
+
       } finally {
         // 8) 完整還原 UI 狀態
         card.classList.remove('capture-mode');
-    
+
         // 還原顯示/隱藏
         $hide.removeClass('hidden-force');
         $show.each(function () {
           this.classList.add('hidden');
           this.style.removeProperty('display');
         });
-    
+
         // 還原 collapsed 狀態（只還原原本是 collapsed 的）
         if (collapsedIds.length > 0) {
           state.stages.forEach(st => st.collapsed = collapsedIds.includes(st.id));
