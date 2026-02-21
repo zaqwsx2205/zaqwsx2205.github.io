@@ -128,20 +128,20 @@
                     <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">自訂幣種名稱</label>
                     <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px] bg-white w-full sm:w-1/2">
                         <i data-lucide="coins" class="w-4 h-4 text-blue-400 shrink-0"></i>
-                        <input type="text" id="base-coin" value="DOGE" placeholder="例如: BTC, ETH" class="base-input w-full bg-transparent outline-none font-bold text-lg h-full text-blue-700 uppercase">
+                        <input type="text" id="base-coin" value="" placeholder="例如: BTC, ETH" class="base-input w-full bg-transparent outline-none font-bold text-lg h-full text-blue-700 uppercase">
                     </div>
                 </div>
 
                 <div class="space-y-1.5">
-                    <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">持有數量 (<span class="coin-name-display">DOGE</span>)</label>
+                    <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">持有數量 (<span class="coin-name-display">COIN</span>)</label>
                     <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px] bg-white">
-                        <input type="number" step="any" id="base-qty" value="10000" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
+                        <input type="number" step="any" id="base-qty" value="" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
                     </div>
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5 text-blue-600">目前平均成本 (TWD)</label>
                     <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
-                        <input type="number" step="any" id="base-avg" value="5.0" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
+                        <input type="number" step="any" id="base-avg" value="" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
                     </div>
                 </div>
 
@@ -156,7 +156,7 @@
                             </select>
                         </div>
                         <div id="fee-val-wrapper" class="hidden input-flex-wrapper w-full flex items-center border border-slate-300 rounded-lg px-3 h-[44px] bg-white focus-within:ring-2 focus-within:ring-blue-500">
-                            <input type="number" step="any" id="fee-val" value="0.1" class="base-input w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
+                            <input type="number" step="any" id="fee-val" value="" class="base-input w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
                         </div>
                     </div>
                 </div>
@@ -280,17 +280,14 @@ $(document).ready(function() {
     // --- State Management ---
     const getDefaultState = () => ({
         base: {
-            coinName: 'DOGE',
-            qty0: 10000,
-            avg0: 5.0,
+            coinName: '',
+            qty0: null,
+            avg0: null,
             feeType: 'none',
-            feeVal: 0.1,
+            feeVal: null,
             carryMode: 'carry'
         },
-        stages: [
-            { id: generateId(), name: "目標：壓到 4.5", targetAvg: 4.5, buyPrice: 4.0, mode: "target", buyTwd: null, collapsed: false },
-            { id: generateId(), name: "加碼：投入 5 萬", targetAvg: null, buyPrice: 3.5, mode: "budget", buyTwd: 50000, collapsed: false }
-        ]
+        stages: []
     });
 
     let state = getDefaultState();
