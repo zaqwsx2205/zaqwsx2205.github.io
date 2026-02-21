@@ -51,24 +51,8 @@
         .show-on-capture-block { display: none !important; }
         .hidden-force { display: none !important; }
         
-        /* 隱藏外層 Wrapper 的背景與線框，但不影響 padding 避免文字貼邊 */
-        .capture-mode .input-flex-wrapper {
-            border-color: transparent !important;
-            background: transparent !important;
-            background-color: transparent !important;
-            box-shadow: none !important;
-        }
-        
-        .capture-mode .border-b {
-            border-color: transparent !important;
-        }
-
         /* 隱藏原生 Input/Select 的預設樣式與下拉箭頭 */
         .capture-mode select, .capture-mode input {
-            border-color: transparent !important;
-            background: transparent !important;
-            background-color: transparent !important;
-            outline: none !important;
             appearance: none !important;
             -webkit-appearance: none !important;
             -moz-appearance: none !important;
@@ -740,10 +724,26 @@ $(document).ready(function() {
       const card = document.getElementById('app-root');
       if (!card) return;
 
-      // 截圖前強制清理樣式 (針對截圖工具可能遺漏 !important 的防呆)
-      const elementsToTransparent = document.querySelectorAll('.input-flex-wrapper, .input-flex-wrapper input, .input-flex-wrapper select, .stage-input-name');
+      // 截圖前強制使用 JavaScript 拔除所有影響背景與邊線的 Tailwind CSS 類別
+      const elementsToTransparent = card.querySelectorAll('.input-flex-wrapper, .stage-input-name');
       elementsToTransparent.forEach(el => {
+          el.setAttribute('data-orig-class', el.className);
+          
+          // 過濾掉所有的 bg-*、border-*、ring-* 與 shadow 類別，只留下安全類別
+          const safeClasses = el.className.split(' ').filter(c => {
+              if (c === 'bg-transparent') return true;
+              if (c.startsWith('bg-')) return false;
+              if (c === 'border' || c.startsWith('border-') || c.includes(':border')) return false;
+              if (c.includes('shadow')) return false;
+              if (c.includes('ring')) return false;
+              return true;
+          });
+          
+          el.className = safeClasses.join(' ');
+
+          // 同時確保行內樣式絕對乾淨
           el.setAttribute('data-orig-style', el.getAttribute('style') || '');
+          el.style.setProperty('background', 'transparent', 'important');
           el.style.setProperty('background-color', 'transparent', 'important');
           el.style.setProperty('border-color', 'transparent', 'important');
           el.style.setProperty('box-shadow', 'none', 'important');
@@ -757,6 +757,10 @@ $(document).ready(function() {
         // 隱藏在截圖中不需要顯示的按鈕區塊，並顯示特定的文字標籤
         $('.hide-on-capture').addClass('hidden-force');
         $('.show-on-capture-block').removeClass('hidden').show();
+        
+        // 強制瀏覽器重繪並稍作等待，確保類別拔除後的畫面渲染完畢
+        void card.offsetHeight;
+        await new Promise(r => setTimeout(r, 100));
           
         const dataUrl = await modernScreenshot.domToPng(card, {
           backgroundColor: '#ffffff',
@@ -801,9 +805,14 @@ $(document).ready(function() {
         $('.hide-on-capture').removeClass('hidden-force');
         $('.show-on-capture-block').addClass('hidden').hide();
         
-        // 截圖後還原樣式
+        // 截圖後還原所有被拔除的 CSS 類別與行內樣式
         elementsToTransparent.forEach(el => {
-            el.setAttribute('style', el.getAttribute('data-orig-style') || '');
+            if(el.hasAttribute('data-orig-class')) {
+                el.className = el.getAttribute('data-orig-class');
+            }
+            if(el.hasAttribute('data-orig-style')) {
+                el.setAttribute('style', el.getAttribute('data-orig-style'));
+            }
         });
       }
     }
