@@ -738,63 +738,127 @@ $(document).ready(function() {
     });
 
     // =========================
-    // modern-screenshot Capture
+    // modern-screenshot Capture (Improved)
     // =========================
     async function handleCapture(action) {
       const card = document.getElementById('app-root');
       if (!card) return;
-
+    
+      // 1) 記錄目前 UI 狀態，確保能完整還原
+      const $hide = $('.hide-on-capture');
+      const $show = $('.show-on-capture-block');
+    
+      // 記錄：哪些 stage 原本是 collapsed（截圖時展開，截完再還原）
+      const collapsedIds = [];
+      state.stages.forEach(st => { if (st.collapsed) collapsedIds.push(st.id); });
+    
+      // 記錄按鈕原始內容（失敗/成功提示後可還原）
+      const $btnDownload = $('#btn-download');
+      const $btnCopy = $('#btn-copy-img');
+      const origDownloadHtml = $btnDownload.html();
+      const origCopyHtml = $btnCopy.html();
+    
+      // 小工具：等下一個 repaint，確保 DOM / icon / layout 都穩定
+      const nextFrame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    
       try {
+        // 2) 字型先就緒
         await document.fonts.ready;
-        
+    
+        // 3) 進入截圖模式：套 CSS 覆蓋、隱藏/顯示指定元素
         card.classList.add('capture-mode');
-        
-        // 隱藏在截圖中不需要顯示的按鈕區塊，並顯示特定的文字標籤
-        $('.hide-on-capture').addClass('hidden-force');
-        $('.show-on-capture-block').removeClass('hidden').show();
-          
+    
+        // 顯示截圖用標籤、浮水印
+        // 用 inline style 強制蓋過你 CSS 的 display:none !important（最穩）
+        $show.each(function () {
+          this.classList.remove('hidden');
+          this.style.setProperty('display', 'block', 'important');
+        });
+    
+        // 隱藏操作按鈕區
+        $hide.addClass('hidden-force');
+    
+        // 4) 截圖時自動展開所有 collapsed stage，避免截到空的 body
+        // 做法：把 state 裡 collapsed 全設為 false，重新渲染一次
+        if (collapsedIds.length > 0) {
+          state.stages.forEach(st => st.collapsed = false);
+          calculate(true);   // 重新 render
+        } else {
+          // 就算沒展開，也做一次 UI 更新，確保 capture label 文字正確
+          updateUI(false);
+        }
+    
+        // 5) 確保 icon 都已經插入 SVG（lucide 需要）
+        lucide.createIcons();
+        await nextFrame();
+    
+        // 6) 產 PNG
         const dataUrl = await modernScreenshot.domToPng(card, {
           backgroundColor: '#ffffff',
           scale: 3,
+          // 你已經用 hidden-force 隱藏了，但保留 filter 做雙重保險
           filter: (n) => !(n.classList && n.classList.contains('hide-on-capture'))
         });
-
+    
+        // 7) 下載 or 複製
         if (action === 'download') {
           const a = document.createElement('a');
-          const coinName = state.base.coinName || 'COIN';
+          const coinName = (state.base.coinName || 'COIN').toUpperCase();
           a.download = `${coinName}-DCA-report-${Date.now()}.png`;
           a.href = dataUrl;
           a.click();
+    
+          // 成功提示（可選）
+          $btnDownload.html('<i data-lucide="check" class="w-4 h-4"></i> 已下載');
+          lucide.createIcons();
+          setTimeout(() => $btnDownload.html(origDownloadHtml), 1200);
+    
         } else {
           const blob = await (await fetch(dataUrl)).blob();
           await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-          
+    
           $('#icon-copy-img').replaceWith('<i id="icon-copy-img" data-lucide="check" class="w-4 h-4"></i>');
           $('#text-copy-img').text('已複製截圖！');
           lucide.createIcons();
-          
+    
           setTimeout(() => {
-              $('#icon-copy-img').replaceWith('<i id="icon-copy-img" data-lucide="copy" class="w-4 h-4"></i>');
-              $('#text-copy-img').text('複製截圖');
-              lucide.createIcons();
-          }, 2500);
+            $('#icon-copy-img').replaceWith('<i id="icon-copy-img" data-lucide="copy" class="w-4 h-4"></i>');
+            $('#text-copy-img').text('複製截圖');
+            lucide.createIcons();
+          }, 1800);
         }
-
+    
       } catch (e) {
         console.error(e);
-        // 將原本的 alert 改為按鈕內的文字提示，避免 iframe 阻擋
-        const $btn = action === 'download' ? $('#btn-download') : $('#btn-copy-img');
-        const origHtml = $btn.html();
-        $btn.html('<i data-lucide="x-circle" class="w-4 h-4"></i> <span class="text-red-500 font-bold">處理失敗</span>');
+    
+        // 失敗提示（不跳 alert，避免 iframe / 權限阻擋）
+        const $btn = action === 'download' ? $btnDownload : $btnCopy;
+        $btn.html('<i data-lucide="x-circle" class="w-4 h-4"></i> <span class="text-red-500 font-bold">截圖失敗</span>');
         lucide.createIcons();
         setTimeout(() => {
-            $btn.html(origHtml);
-            lucide.createIcons();
-        }, 2500);
+          $btn.html(action === 'download' ? origDownloadHtml : origCopyHtml);
+          lucide.createIcons();
+        }, 1800);
+    
       } finally {
+        // 8) 完整還原 UI 狀態
         card.classList.remove('capture-mode');
-        $('.hide-on-capture').removeClass('hidden-force');
-        $('.show-on-capture-block').addClass('hidden').hide();
+    
+        // 還原顯示/隱藏
+        $hide.removeClass('hidden-force');
+        $show.each(function () {
+          this.classList.add('hidden');
+          this.style.removeProperty('display');
+        });
+    
+        // 還原 collapsed 狀態（只還原原本是 collapsed 的）
+        if (collapsedIds.length > 0) {
+          state.stages.forEach(st => st.collapsed = collapsedIds.includes(st.id));
+          calculate(true);
+        } else {
+          // 確保畫面回到正常 icon
+          lucide.createIcons();
+        }
       }
     }
 
