@@ -455,6 +455,13 @@
 
 <script>
 $(document).ready(function() {
+    // 停用 input[type=number] 的滑鼠滾輪修改數值行為
+    document.addEventListener('wheel', function() {
+        if (document.activeElement.type === 'number') {
+            document.activeElement.blur();
+        }
+    });
+
     // --- State ---
     let mode = 'twd_to_usd';
     let feeItems = [];
