@@ -48,99 +48,50 @@
         textarea::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         /* =========================================
-           Capture Mode Styles (截圖專用純 CSS 覆蓋)
+           Capture Mode Styles (跟加密貨幣卡交易計算機一致)
            ========================================= */
         .show-on-capture-block { display: none !important; }
         .hidden-force { display: none !important; }
-        
-        /* 隱藏外層 Wrapper 的背景與線框，保留 padding 避免文字貼邊 */
-/* === Capture Mode: match Crypto Card Calculator look === */
 
-/* 1) 全面關掉 Tailwind ring（避免 focus-within:ring-2 在截圖留下框） */
-.capture-mode,
-.capture-mode * {
-  --tw-ring-inset: initial !important;
-  --tw-ring-offset-width: 0px !important;
-  --tw-ring-offset-color: transparent !important;
-  --tw-ring-color: transparent !important;
-  --tw-ring-offset-shadow: 0 0 #0000 !important;
-  --tw-ring-shadow: 0 0 #0000 !important;
-}
-
-/* 2) wrapper 去邊框/去底色/去陰影/去 padding（跟卡交易計算機一致） */
-.capture-mode .input-flex-wrapper {
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-}
-
-/* 3) input/select 全部去邊框/去底色/去外框/去陰影 */
-.capture-mode input,
-.capture-mode select,
-.capture-mode textarea {
-  border: none !important;
-  background: transparent !important;
-  outline: none !important;
-  box-shadow: none !important;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  caret-color: transparent !important; /* 隱藏游標 */
-}
-
-/* 4) 避免 stage 名稱那條 focus:border-b 在截圖出現底線 */
-.capture-mode .stage-input-name {
-  border-bottom: none !important;
-}
-
-/* 5) 保險：任何 focus 狀態都不要出現外框或陰影 */
-.capture-mode :focus,
-.capture-mode :focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
-}
-        
-        /* 隱藏下邊框 (針對自訂幣種區塊與階段名稱) */
-        .capture-mode .border-b,
-        .capture-mode .stage-input-name {
-            border-color: transparent !important;
-        }
-
-        /* 隱藏原生 Input/Select 的背景、預設樣式與下拉箭頭 */
-        .capture-mode select, 
-        .capture-mode input {
-            border-color: transparent !important;
-            background: transparent !important;
-            background-color: transparent !important;
-            outline: none !important;
-            appearance: none !important;
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-            caret-color: transparent !important; /* 隱藏游標 */
-        }
-
-        /* 避免截圖邊角出現圓角產生的白邊 */
+        /* 1) 卡片本體在截圖時去圓角/去陰影（避免白邊） */
         .capture-mode {
-            border-radius: 0 !important;
-            box-shadow: none !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
         }
 
-/* 讓輸入框透明後，不會露出外層灰底/綠底/橘底 */
-.capture-mode .bg-slate-50,
-.capture-mode .bg-blue-50\/50,
-.capture-mode .bg-emerald-50\/50,
-.capture-mode .bg-orange-50\/50,
-.capture-mode .bg-white {
-  background: transparent !important;
-  background-color: transparent !important;
-}
+        /* 2) 把「輸入框外觀」改成純文字：去框、去底、去陰影 */
+        .capture-mode .input-flex-wrapper {
+          border: none !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          padding: 0 !important;          /* 如果你覺得太貼邊，改成 padding: 0 0.25rem; */
+        }
 
-/* 如果某些地方還是有底色/陰影，直接保險清掉 */
-.capture-mode .stage-card,
-.capture-mode .stage-card * {
-  box-shadow: none !important;
-}
+        /* 3) input/select/textarea 去框、去底、去 focus 外觀 */
+        .capture-mode .input-flex-wrapper input,
+        .capture-mode .input-flex-wrapper select,
+        .capture-mode .input-flex-wrapper textarea {
+          border: none !important;
+          background: transparent !important;
+          outline: none !important;
+          box-shadow: none !important;
+          appearance: none !important;
+          -webkit-appearance: none !important;
+          -moz-appearance: none !important;
+          caret-color: transparent !important;
+          font-weight: 600;
+        }
+
+        /* 4) Tailwind 的 focus ring 是用 box-shadow，這裡雙保險清掉 */
+        .capture-mode .input-flex-wrapper:focus-within {
+          box-shadow: none !important;
+        }
+
+        /* 5) stage 名稱那條 focus:border-b 底線拿掉 */
+        .capture-mode .stage-input-name {
+          border-bottom: none !important;
+        }
+
     </style>
 </head>
 
