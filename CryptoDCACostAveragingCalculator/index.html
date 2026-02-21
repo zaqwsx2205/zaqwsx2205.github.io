@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,22 +17,59 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; }
+    body {
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    }
 
-    .stage-card.collapsed .stage-body { display: none; }
-    .stage-card.collapsed .stage-footer-results { border-top: none; padding-top: 0; margin-top: 0; }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
 
-    textarea::-webkit-scrollbar { width: 8px; }
-    textarea::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-    textarea::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    textarea::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
 
-    .show-on-capture-block { display: none !important; }
+    .stage-card.collapsed .stage-body {
+      display: none;
+    }
 
-    #app-root.capture-mode .hide-on-capture { display: none !important; }
-    #app-root.capture-mode .show-on-capture-block { display: block !important; }
+    .stage-card.collapsed .stage-footer-results {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
+
+    textarea::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    textarea::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+
+    textarea::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    textarea::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    .show-on-capture-block {
+      display: none !important;
+    }
+
+    #app-root.capture-mode .hide-on-capture {
+      display: none !important;
+    }
+
+    #app-root.capture-mode .show-on-capture-block {
+      display: block !important;
+    }
 
     #app-root.capture-mode {
       border-radius: 0 !important;
@@ -102,302 +140,302 @@
 
 <body class="bg-slate-50 min-h-screen p-4 flex justify-center items-start pt-8 pb-20 text-slate-800">
 
-<div id="app-root" class="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+  <div id="app-root" class="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
 
-  <div class="bg-blue-600 pt-6 pb-4 px-6 text-white relative overflow-hidden">
-    <i data-lucide="bitcoin" class="absolute -right-4 -top-8 w-40 h-40 text-blue-500 opacity-40 transform rotate-[15deg] pointer-events-none"></i>
-    <i data-lucide="bitcoin" class="absolute left-1/3 -bottom-10 w-32 h-32 text-blue-500 opacity-20 transform -rotate-[20deg] pointer-events-none"></i>
+    <div class="bg-blue-600 pt-6 pb-4 px-6 text-white relative overflow-hidden">
+      <i data-lucide="bitcoin" class="absolute -right-4 -top-8 w-40 h-40 text-blue-500 opacity-40 transform rotate-[15deg] pointer-events-none"></i>
+      <i data-lucide="bitcoin" class="absolute left-1/3 -bottom-10 w-32 h-32 text-blue-500 opacity-20 transform -rotate-[20deg] pointer-events-none"></i>
 
-    <div class="relative z-10 flex items-center justify-between mb-4">
-      <div class="flex items-center gap-2">
-        <i data-lucide="trending-down" class="w-6 h-6"></i>
-        <h1 class="text-xl font-bold tracking-tight">加密貨幣DCA成本壓縮計算機</h1>
+      <div class="relative z-10 flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="trending-down" class="w-6 h-6"></i>
+          <h1 class="text-xl font-bold tracking-tight">加密貨幣DCA成本壓縮計算機</h1>
+        </div>
+
+        <div class="bg-blue-700/50 rounded-lg p-1 flex text-xs font-bold shrink-0 hide-on-capture">
+          <button id="btn-mode-carry" class="px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm">承接模式</button>
+          <button id="btn-mode-indep" class="px-3 py-1.5 rounded-md transition-all text-blue-200 hover:text-white">獨立模式</button>
+        </div>
+
+        <div id="capture-mode-label" class="hidden show-on-capture-block text-xs font-bold bg-blue-700/50 px-2 py-1 rounded-md border border-blue-400/30">
+          模式：承接模式
+        </div>
       </div>
 
-      <div class="bg-blue-700/50 rounded-lg p-1 flex text-xs font-bold shrink-0 hide-on-capture">
-        <button id="btn-mode-carry" class="px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm">承接模式</button>
-        <button id="btn-mode-indep" class="px-3 py-1.5 rounded-md transition-all text-blue-200 hover:text-white">獨立模式</button>
-      </div>
-
-      <div id="capture-mode-label" class="hidden show-on-capture-block text-xs font-bold bg-blue-700/50 px-2 py-1 rounded-md border border-blue-400/30">
-        模式：承接模式
+      <div class="relative z-10 flex items-center justify-between">
+        <p id="mode-desc" class="text-blue-100 text-sm opacity-90">後一階段以前一階段的計算結果為基礎</p>
+        <div class="text-xs font-medium text-blue-200 bg-blue-700/30 px-2 py-1 rounded">
+          計價：<span class="currency-name-display">TWD</span>
+        </div>
       </div>
     </div>
 
-    <div class="relative z-10 flex items-center justify-between">
-      <p id="mode-desc" class="text-blue-100 text-sm opacity-90">後一階段以前一階段的計算結果為基礎</p>
-      <div class="text-xs font-medium text-blue-200 bg-blue-700/30 px-2 py-1 rounded">
-        計價：<span class="currency-name-display">TWD</span>
+    <div class="p-6 flex flex-col gap-6">
+
+      <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2 text-sm font-bold text-slate-700">
+            <i data-lucide="wallet" class="w-4 h-4 text-blue-500"></i>
+            <span>初始持倉 (Base Holdings)</span>
+          </div>
+          <div class="text-xs text-slate-500 font-mono font-medium">
+            總成本: <span id="base-total" class="text-slate-700 font-bold text-sm">0</span> <span class="currency-name-display">TWD</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="col-span-2 flex flex-col sm:flex-row gap-4 pb-3 border-b border-slate-200/60">
+            <div class="space-y-1.5 flex-1">
+              <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">自訂幣種名稱</label>
+              <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px] bg-white w-full">
+                <i data-lucide="coins" class="w-4 h-4 text-blue-400 shrink-0"></i>
+                <input type="text" id="base-coin" value="" placeholder="例如: BTC, ETH" class="base-input w-full bg-transparent outline-none font-mono font-bold text-lg h-full text-blue-700 uppercase">
+              </div>
+            </div>
+            <div class="space-y-1.5 flex-1">
+              <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">自訂計價幣別</label>
+              <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-emerald-500 h-[44px] bg-white w-full">
+                <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+                <input type="text" id="base-currency" value="TWD" placeholder="例如: USDT, TWD" class="base-input w-full bg-transparent outline-none font-mono font-bold text-lg h-full text-emerald-700 uppercase">
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">持有數量 (<span class="coin-name-display">COIN</span>)</label>
+            <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px] bg-white">
+              <input type="number" step="any" id="base-qty" value="0" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5 text-blue-600">目前平均成本 (<span class="currency-name-display">TWD</span>)</label>
+            <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
+              <input type="number" step="any" id="base-avg" value="0" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
+            </div>
+          </div>
+
+          <div class="space-y-1.5 col-span-2 pt-2 border-t border-slate-100 mt-1">
+            <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">手續費設定</label>
+            <div class="grid grid-cols-2 gap-4 w-full">
+              <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg h-[44px] bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
+                <select id="fee-type" class="base-input w-full h-full px-3 text-sm font-mono bg-transparent outline-none font-medium text-slate-600">
+                  <option value="none">無手續費</option>
+                  <option value="percent">百分比 (%)</option>
+                  <option value="fixed" id="fee-opt-fixed">固定 (TWD)</option>
+                </select>
+              </div>
+              <div id="fee-val-wrapper" class="hidden input-flex-wrapper w-full flex items-center border border-slate-300 rounded-lg px-3 h-[44px] bg-white focus-within:ring-2 focus-within:ring-blue-500">
+                <input type="number" step="any" id="fee-val" value="0" class="base-input w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full h-px bg-slate-100 shrink-0"></div>
+
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+          <i data-lucide="layers" class="w-4 h-4 text-blue-500"></i>
+          策略階段列表
+        </h2>
+        <button id="btn-add-stage" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-1.5 px-3 rounded-lg border border-blue-200 transition-colors flex items-center gap-1 hide-on-capture">
+          <i data-lucide="plus" class="w-3 h-3"></i> 新增階段
+        </button>
+      </div>
+
+      <div id="stages-container" class="space-y-4 min-h-[100px]"></div>
+
+      <div class="w-full h-px bg-slate-100 shrink-0 hide-on-capture"></div>
+
+      <div class="flex flex-col gap-3 hide-on-capture">
+        <div class="flex gap-3">
+          <button id="btn-download" class="flex-1 flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 py-3 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
+            <i data-lucide="image-down" class="w-4 h-4"></i> 下載結果圖
+          </button>
+          <button id="btn-copy-img" class="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white py-3 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 disabled:opacity-50">
+            <i id="icon-copy-img" data-lucide="copy" class="w-4 h-4"></i> <span id="text-copy-img">複製截圖</span>
+          </button>
+        </div>
+
+        <button id="btn-export-text" class="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 py-3 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
+          <i data-lucide="file-text" class="w-4 h-4"></i> 輸出文字報告
+        </button>
+
+        <div class="flex gap-3">
+          <button id="btn-export-json" class="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 py-2.5 rounded-xl text-xs font-bold transition-all">
+            <i data-lucide="download" class="w-4 h-4"></i> 匯出 JSON
+          </button>
+          <button id="btn-import-json" class="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 py-2.5 rounded-xl text-xs font-bold transition-all">
+            <i data-lucide="upload" class="w-4 h-4"></i> 匯入 JSON
+          </button>
+          <button id="btn-reset" class="flex-1 flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 py-2.5 rounded-xl text-xs font-bold transition-all">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> 重設策略
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="modal-text" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modal-text-content">
+      <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-blue-500"></i> 文字報告</h3>
+        <button class="btn-close-modal p-1 text-slate-400 hover:text-slate-600 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-6 flex-1">
+        <textarea id="text-output-area" class="w-full h-[400px] p-3 text-sm font-mono text-slate-700 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 resize-none" readonly></textarea>
+      </div>
+      <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+        <button class="btn-close-modal px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors">關閉</button>
+        <button id="btn-copy-text" class="px-4 py-2 text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
+          <i data-lucide="copy" class="w-4 h-4"></i> 複製內容
+        </button>
       </div>
     </div>
   </div>
 
-  <div class="p-6 flex flex-col gap-6">
-
-    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2 text-sm font-bold text-slate-700">
-          <i data-lucide="wallet" class="w-4 h-4 text-blue-500"></i>
-          <span>初始持倉 (Base Holdings)</span>
-        </div>
-        <div class="text-xs text-slate-500 font-mono font-medium">
-          總成本: <span id="base-total" class="text-slate-700 font-bold text-sm">0</span> <span class="currency-name-display">TWD</span>
-        </div>
+  <div id="modal-json" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modal-json-content">
+      <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <h3 id="modal-json-title" class="font-bold text-slate-800 flex items-center gap-2"><i data-lucide="code" class="w-4 h-4 text-blue-500"></i> JSON 設定</h3>
+        <button class="btn-close-modal p-1 text-slate-400 hover:text-slate-600 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-
-      <div class="grid grid-cols-2 gap-4">
-        <div class="col-span-2 flex flex-col sm:flex-row gap-4 pb-3 border-b border-slate-200/60">
-          <div class="space-y-1.5 flex-1">
-            <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">自訂幣種名稱</label>
-            <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px] bg-white w-full">
-              <i data-lucide="coins" class="w-4 h-4 text-blue-400 shrink-0"></i>
-              <input type="text" id="base-coin" value="" placeholder="例如: BTC, ETH" class="base-input w-full bg-transparent outline-none font-mono font-bold text-lg h-full text-blue-700 uppercase">
-            </div>
-          </div>
-          <div class="space-y-1.5 flex-1">
-            <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">自訂計價幣別</label>
-            <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-emerald-500 h-[44px] bg-white w-full">
-              <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-500 shrink-0"></i>
-              <input type="text" id="base-currency" value="TWD" placeholder="例如: USDT, TWD" class="base-input w-full bg-transparent outline-none font-mono font-bold text-lg h-full text-emerald-700 uppercase">
-            </div>
-          </div>
-        </div>
-
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">持有數量 (<span class="coin-name-display">COIN</span>)</label>
-          <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px] bg-white">
-            <input type="number" step="any" id="base-qty" value="0" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
-          </div>
-        </div>
-
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5 text-blue-600">目前平均成本 (<span class="currency-name-display">TWD</span>)</label>
-          <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
-            <input type="number" step="any" id="base-avg" value="0" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
-          </div>
-        </div>
-
-        <div class="space-y-1.5 col-span-2 pt-2 border-t border-slate-100 mt-1">
-          <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">手續費設定</label>
-          <div class="grid grid-cols-2 gap-4 w-full">
-            <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg h-[44px] bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
-              <select id="fee-type" class="base-input w-full h-full px-3 text-sm font-mono bg-transparent outline-none font-medium text-slate-600">
-                <option value="none">無手續費</option>
-                <option value="percent">百分比 (%)</option>
-                <option value="fixed" id="fee-opt-fixed">固定 (TWD)</option>
-              </select>
-            </div>
-            <div id="fee-val-wrapper" class="hidden input-flex-wrapper w-full flex items-center border border-slate-300 rounded-lg px-3 h-[44px] bg-white focus-within:ring-2 focus-within:ring-blue-500">
-              <input type="number" step="any" id="fee-val" value="0" class="base-input w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
-            </div>
-          </div>
-        </div>
+      <div class="p-6 flex-1">
+        <p id="modal-json-desc" class="text-xs text-slate-500 mb-2">您可以複製以下內容保存，或貼上既有的 JSON 設定來覆蓋目前狀態。</p>
+        <textarea id="json-io-area" class="w-full h-[300px] p-3 text-xs font-mono text-slate-700 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+        <div id="json-error" class="text-xs text-red-500 mt-2 font-bold hidden">無效的 JSON 格式</div>
       </div>
-    </div>
-
-    <div class="w-full h-px bg-slate-100 shrink-0"></div>
-
-    <div class="flex items-center justify-between">
-      <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
-        <i data-lucide="layers" class="w-4 h-4 text-blue-500"></i>
-        策略階段列表
-      </h2>
-      <button id="btn-add-stage" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-1.5 px-3 rounded-lg border border-blue-200 transition-colors flex items-center gap-1 hide-on-capture">
-        <i data-lucide="plus" class="w-3 h-3"></i> 新增階段
-      </button>
-    </div>
-
-    <div id="stages-container" class="space-y-4 min-h-[100px]"></div>
-
-    <div class="w-full h-px bg-slate-100 shrink-0 hide-on-capture"></div>
-
-    <div class="flex flex-col gap-3 hide-on-capture">
-      <div class="flex gap-3">
-        <button id="btn-download" class="flex-1 flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 py-3 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
-          <i data-lucide="image-down" class="w-4 h-4"></i> 下載結果圖
-        </button>
-        <button id="btn-copy-img" class="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white py-3 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 disabled:opacity-50">
-          <i id="icon-copy-img" data-lucide="copy" class="w-4 h-4"></i> <span id="text-copy-img">複製截圖</span>
-        </button>
-      </div>
-
-      <button id="btn-export-text" class="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 py-3 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95">
-        <i data-lucide="file-text" class="w-4 h-4"></i> 輸出文字報告
-      </button>
-
-      <div class="flex gap-3">
-        <button id="btn-export-json" class="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 py-2.5 rounded-xl text-xs font-bold transition-all">
-          <i data-lucide="download" class="w-4 h-4"></i> 匯出 JSON
-        </button>
-        <button id="btn-import-json" class="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 py-2.5 rounded-xl text-xs font-bold transition-all">
-          <i data-lucide="upload" class="w-4 h-4"></i> 匯入 JSON
-        </button>
-        <button id="btn-reset" class="flex-1 flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 py-2.5 rounded-xl text-xs font-bold transition-all">
-          <i data-lucide="rotate-ccw" class="w-4 h-4"></i> 重設策略
+      <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+        <button class="btn-close-modal px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors">取消</button>
+        <button id="btn-json-action" class="px-4 py-2 text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
+          確認執行
         </button>
       </div>
     </div>
   </div>
 
-</div>
-
-<div id="modal-text" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modal-text-content">
-    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-      <h3 class="font-bold text-slate-800 flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-blue-500"></i> 文字報告</h3>
-      <button class="btn-close-modal p-1 text-slate-400 hover:text-slate-600 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
-    </div>
-    <div class="p-6 flex-1">
-      <textarea id="text-output-area" class="w-full h-[400px] p-3 text-sm font-mono text-slate-700 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 resize-none" readonly></textarea>
-    </div>
-    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-      <button class="btn-close-modal px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors">關閉</button>
-      <button id="btn-copy-text" class="px-4 py-2 text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
-        <i data-lucide="copy" class="w-4 h-4"></i> 複製內容
-      </button>
-    </div>
-  </div>
-</div>
-
-<div id="modal-json" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modal-json-content">
-    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-      <h3 id="modal-json-title" class="font-bold text-slate-800 flex items-center gap-2"><i data-lucide="code" class="w-4 h-4 text-blue-500"></i> JSON 設定</h3>
-      <button class="btn-close-modal p-1 text-slate-400 hover:text-slate-600 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
-    </div>
-    <div class="p-6 flex-1">
-      <p id="modal-json-desc" class="text-xs text-slate-500 mb-2">您可以複製以下內容保存，或貼上既有的 JSON 設定來覆蓋目前狀態。</p>
-      <textarea id="json-io-area" class="w-full h-[300px] p-3 text-xs font-mono text-slate-700 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
-      <div id="json-error" class="text-xs text-red-500 mt-2 font-bold hidden">無效的 JSON 格式</div>
-    </div>
-    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-      <button class="btn-close-modal px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors">取消</button>
-      <button id="btn-json-action" class="px-4 py-2 text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
-        確認執行
-      </button>
-    </div>
-  </div>
-</div>
-
-<script>
-$(document).ready(function() {
-  const formatNum = (num, digits = 2) => {
-    if (num === null || num === undefined || isNaN(num) || num === '') return '-';
-    const d = Math.max(0, Math.min(12, digits));
-    return Number(num).toLocaleString('zh-TW', { minimumFractionDigits: d, maximumFractionDigits: d });
-  };
-
-  const parseNum = (v) => {
-    if (v === '' || v === null || v === undefined) return null;
-    const n = parseFloat(v);
-    return Number.isFinite(n) ? n : null;
-  };
-
-  const valOrEmpty = (v) => v === null ? '' : v;
-  const generateId = () => 's_' + Math.random().toString(36).substr(2, 9);
-
-  const getDefaultState = () => ({
-    base: {
-      coinName: '',
-      currencyName: 'TWD',
-      qty0: 0,
-      avg0: 0,
-      feeType: 'none',
-      feeVal: 0,
-      carryMode: 'carry'
-    },
-    stages: []
-  });
-
-  let state = getDefaultState();
-  let calculatedResults = [];
-
-  function calculate(fullRender = true) {
-    calculatedResults = [];
-
-    let currentQ = state.base.qty0 === null ? 0 : state.base.qty0;
-    let currentC = currentQ * (state.base.avg0 === null ? 0 : state.base.avg0);
-
-    state.stages.forEach((st) => {
-      let res = {
-        id: st.id,
-        startQ: state.base.carryMode === 'carry' ? currentQ : (state.base.qty0 === null ? 0 : state.base.qty0),
-        startC: state.base.carryMode === 'carry' ? currentC : (state.base.qty0 === null ? 0 : state.base.qty0) * (state.base.avg0 === null ? 0 : state.base.avg0),
-        buyQty: 0, costTwd: 0, feeTwd: 0, newQty: 0, newCost: 0, newAvg: 0,
-        error: null, warn: null
+  <script>
+    $(document).ready(function () {
+      const formatNum = (num, digits = 2) => {
+        if (num === null || num === undefined || isNaN(num) || num === '') return '-';
+        const d = Math.max(0, Math.min(12, digits));
+        return Number(num).toLocaleString('zh-TW', { minimumFractionDigits: d, maximumFractionDigits: d });
       };
-      res.startAvg = res.startQ > 0 ? res.startC / res.startQ : 0;
 
-      let P = parseNum(st.buyPrice);
+      const parseNum = (v) => {
+        if (v === '' || v === null || v === undefined) return null;
+        const n = parseFloat(v);
+        return Number.isFinite(n) ? n : null;
+      };
 
-      if (P === null || P <= 0) {
-        res.error = '請輸入有效的買入價格 (大於 0)';
-      } else {
-        if (st.mode === 'target') {
-          let T = parseNum(st.targetAvg);
-          if (T === null || T <= 0) res.error = '請輸入有效的目標成本 (大於 0)';
-          else if (P >= T && res.startAvg > T) res.error = '買入價格必須低於目標成本才能壓低均價';
-          else if (res.startAvg <= T && res.startAvg > 0) res.error = '目前均價已達標，無需買入';
-          else {
-            let x = (T * res.startQ - res.startC) / (P - T);
-            if (x <= 0) res.error = '數學上無法達成該目標（所需數量為負或零）';
-            else {
-              if (x > 1000000) res.warn = '所需買入數量極大，請確認目標成本與買入價格設定是否合理';
-              res.buyQty = x;
-              res.costTwd = x * P;
+      const valOrEmpty = (v) => v === null ? '' : v;
+      const generateId = () => 's_' + Math.random().toString(36).substr(2, 9);
+
+      const getDefaultState = () => ({
+        base: {
+          coinName: '',
+          currencyName: 'TWD',
+          qty0: 0,
+          avg0: 0,
+          feeType: 'none',
+          feeVal: 0,
+          carryMode: 'carry'
+        },
+        stages: []
+      });
+
+      let state = getDefaultState();
+      let calculatedResults = [];
+
+      function calculate(fullRender = true) {
+        calculatedResults = [];
+
+        let currentQ = state.base.qty0 === null ? 0 : state.base.qty0;
+        let currentC = currentQ * (state.base.avg0 === null ? 0 : state.base.avg0);
+
+        state.stages.forEach((st) => {
+          let res = {
+            id: st.id,
+            startQ: state.base.carryMode === 'carry' ? currentQ : (state.base.qty0 === null ? 0 : state.base.qty0),
+            startC: state.base.carryMode === 'carry' ? currentC : (state.base.qty0 === null ? 0 : state.base.qty0) * (state.base.avg0 === null ? 0 : state.base.avg0),
+            buyQty: 0, costTwd: 0, feeTwd: 0, newQty: 0, newCost: 0, newAvg: 0,
+            error: null, warn: null
+          };
+          res.startAvg = res.startQ > 0 ? res.startC / res.startQ : 0;
+
+          let P = parseNum(st.buyPrice);
+
+          if (P === null || P <= 0) {
+            res.error = '請輸入有效的買入價格 (大於 0)';
+          } else {
+            if (st.mode === 'target') {
+              let T = parseNum(st.targetAvg);
+              if (T === null || T <= 0) res.error = '請輸入有效的目標成本 (大於 0)';
+              else if (P >= T && res.startAvg > T) res.error = '買入價格必須低於目標成本才能壓低均價';
+              else if (res.startAvg <= T && res.startAvg > 0) res.error = '目前均價已達標，無需買入';
+              else {
+                let x = (T * res.startQ - res.startC) / (P - T);
+                if (x <= 0) res.error = '數學上無法達成該目標（所需數量為負或零）';
+                else {
+                  if (x > 1000000) res.warn = '所需買入數量極大，請確認目標成本與買入價格設定是否合理';
+                  res.buyQty = x;
+                  res.costTwd = x * P;
+                }
+              }
+            } else if (st.mode === 'budget') {
+              let M = parseNum(st.buyTwd);
+              if (M === null || M <= 0) res.error = '請輸入有效的投入預算 (大於 0)';
+              else {
+                res.buyQty = M / P;
+                res.costTwd = M;
+              }
             }
           }
-        } else if (st.mode === 'budget') {
-          let M = parseNum(st.buyTwd);
-          if (M === null || M <= 0) res.error = '請輸入有效的投入預算 (大於 0)';
-          else {
-            res.buyQty = M / P;
-            res.costTwd = M;
+
+          if (!res.error && res.costTwd > 0) {
+            let feeSetVal = state.base.feeVal === null ? 0 : state.base.feeVal;
+            if (state.base.feeType === 'percent') res.feeTwd = res.costTwd * (feeSetVal / 100);
+            else if (state.base.feeType === 'fixed') res.feeTwd = feeSetVal;
+
+            res.costTwd += res.feeTwd;
+            res.newQty = res.startQ + res.buyQty;
+            res.newCost = res.startC + res.costTwd;
+            res.newAvg = res.newCost / res.newQty;
+
+            if (state.base.carryMode === 'carry') {
+              currentQ = res.newQty;
+              currentC = res.newCost;
+            }
           }
-        }
+
+          calculatedResults.push(res);
+        });
+
+        updateUI(fullRender);
       }
 
-      if (!res.error && res.costTwd > 0) {
-        let feeSetVal = state.base.feeVal === null ? 0 : state.base.feeVal;
-        if (state.base.feeType === 'percent') res.feeTwd = res.costTwd * (feeSetVal / 100);
-        else if (state.base.feeType === 'fixed') res.feeTwd = feeSetVal;
-
-        res.costTwd += res.feeTwd;
-        res.newQty = res.startQ + res.buyQty;
-        res.newCost = res.startC + res.costTwd;
-        res.newAvg = res.newCost / res.newQty;
-
-        if (state.base.carryMode === 'carry') {
-          currentQ = res.newQty;
-          currentC = res.newCost;
-        }
-      }
-
-      calculatedResults.push(res);
-    });
-
-    updateUI(fullRender);
-  }
-
-  function generateResultHtml(res, currentCoin, currentCurrency) {
-    let resultHtml = '';
-    if (res.error) {
-      resultHtml = `
+      function generateResultHtml(res, currentCoin, currentCurrency) {
+        let resultHtml = '';
+        if (res.error) {
+          resultHtml = `
         <div class="mx-4 mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm font-medium flex items-start gap-2 border border-red-100">
           <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5"></i>
           <span>${res.error}</span>
         </div>`;
-    } else if (res.buyQty > 0 || res.costTwd > 0) {
-      let warnHtml = '';
-      if (res.warn) {
-        warnHtml = `
+        } else if (res.buyQty > 0 || res.costTwd > 0) {
+          let warnHtml = '';
+          if (res.warn) {
+            warnHtml = `
           <div class="mx-4 mt-2 mb-2 p-3 bg-yellow-50 text-yellow-700 rounded-lg text-sm font-medium flex items-start gap-2 border border-yellow-200">
             <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i>
             <span>${res.warn}</span>
           </div>`;
-      }
+          }
 
-      resultHtml = warnHtml + `
+          resultHtml = warnHtml + `
         <div class="pt-4 px-4 pb-4 border-t border-slate-100 stage-footer-results">
           <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             <div class="flex flex-col">
@@ -405,7 +443,7 @@ $(document).ready(function() {
               <span class="font-mono font-bold text-slate-700">${formatNum(res.buyQty, 2)}</span>
             </div>
             <div class="flex flex-col">
-              <span class="text-[10px] font-bold text-slate-400 uppercase">需投入資金 (<span class="currency-name-display">${currentCurrency}</span>) ${res.feeTwd>0 ? '<span class="text-red-400 text-[9px]">(含手續費)</span>':''}</span>
+              <span class="text-[10px] font-bold text-slate-400 uppercase">需投入資金 (<span class="currency-name-display">${currentCurrency}</span>) ${res.feeTwd > 0 ? '<span class="text-red-400 text-[9px]">(含手續費)</span>' : ''}</span>
               <span class="font-mono font-bold text-slate-700">${formatNum(res.costTwd, 0)}</span>
             </div>
             <div class="col-span-2 border-t border-dashed border-slate-100 my-1"></div>
@@ -422,35 +460,35 @@ $(document).ready(function() {
             </div>
           </div>
         </div>`;
-    }
-    return resultHtml;
-  }
+        }
+        return resultHtml;
+      }
 
-  function renderStages() {
-    const container = $('#stages-container');
-    container.empty();
+      function renderStages() {
+        const container = $('#stages-container');
+        container.empty();
 
-    if (state.stages.length === 0) {
-      container.html('<div class="text-center py-8 text-slate-400 text-sm italic bg-slate-50 rounded-xl border border-dashed border-slate-200">目前沒有設定任何階段，請點擊右上方新增。</div>');
-      lucide.createIcons();
-      return;
-    }
+        if (state.stages.length === 0) {
+          container.html('<div class="text-center py-8 text-slate-400 text-sm italic bg-slate-50 rounded-xl border border-dashed border-slate-200">目前沒有設定任何階段，請點擊右上方新增。</div>');
+          lucide.createIcons();
+          return;
+        }
 
-    const currentCoin = state.base.coinName || 'COIN';
-    const currentCurrency = state.base.currencyName || 'TWD';
+        const currentCoin = state.base.coinName || 'COIN';
+        const currentCurrency = state.base.currencyName || 'TWD';
 
-    state.stages.forEach((st, idx) => {
-      const res = calculatedResults[idx];
-      const isTarget = st.mode === 'target';
-      const collapsedClass = st.collapsed ? 'collapsed' : '';
-      const chevronDir = st.collapsed ? 'chevron-down' : 'chevron-up';
+        state.stages.forEach((st, idx) => {
+          const res = calculatedResults[idx];
+          const isTarget = st.mode === 'target';
+          const collapsedClass = st.collapsed ? 'collapsed' : '';
+          const chevronDir = st.collapsed ? 'chevron-down' : 'chevron-up';
 
-      const upDisabled = idx === 0;
-      const downDisabled = idx === state.stages.length - 1;
+          const upDisabled = idx === 0;
+          const downDisabled = idx === state.stages.length - 1;
 
-      const resultHtml = generateResultHtml(res, currentCoin, currentCurrency);
+          const resultHtml = generateResultHtml(res, currentCoin, currentCurrency);
 
-      const html = `
+          const html = `
         <div class="stage-card bg-white rounded-xl border border-slate-200 shadow-sm relative transition-all ${collapsedClass}" data-id="${st.id}">
           <div class="px-4 py-3 flex items-center justify-between cursor-pointer btn-toggle-collapse">
             <div class="flex items-center gap-3">
@@ -493,365 +531,380 @@ $(document).ready(function() {
           <div class="stage-result-container">${resultHtml}</div>
         </div>`;
 
-      container.append(html);
-    });
-
-    lucide.createIcons();
-  }
-
-  function updateStageResultsOnly() {
-    const currentCoin = state.base.coinName || 'COIN';
-    const currentCurrency = state.base.currencyName || 'TWD';
-
-    state.stages.forEach((st, idx) => {
-      const res = calculatedResults[idx];
-      const card = $(`.stage-card[data-id="${st.id}"]`);
-      if (!card.length) return;
-
-      const nameInput = card.find('.stage-input-name');
-      if (!nameInput.is(':focus')) nameInput.val(st.name);
-
-      const buyPriceInput = card.find('[data-field="buyPrice"]');
-      if (!buyPriceInput.is(':focus')) buyPriceInput.val(valOrEmpty(st.buyPrice));
-
-      const targetInput = card.find('[data-field="targetAvg"], [data-field="buyTwd"]');
-      if (!targetInput.is(':focus')) targetInput.val(valOrEmpty(st.mode === 'target' ? st.targetAvg : st.buyTwd));
-
-      const resultHtml = generateResultHtml(res, currentCoin, currentCurrency);
-      card.find('.stage-result-container').html(resultHtml);
-    });
-
-    lucide.createIcons();
-  }
-
-  function updateUI(fullRender = true) {
-    if (document.activeElement.id !== 'base-coin') $('#base-coin').val(valOrEmpty(state.base.coinName));
-    if (document.activeElement.id !== 'base-currency') $('#base-currency').val(state.base.currencyName || 'TWD');
-    if (document.activeElement.id !== 'base-qty') $('#base-qty').val(valOrEmpty(state.base.qty0));
-    if (document.activeElement.id !== 'base-avg') $('#base-avg').val(valOrEmpty(state.base.avg0));
-
-    const currentQ = state.base.qty0 === null ? 0 : state.base.qty0;
-    const currentAvg = state.base.avg0 === null ? 0 : state.base.avg0;
-    $('#base-total').text(formatNum(currentQ * currentAvg, 0));
-
-    $('.coin-name-display').text(state.base.coinName || 'COIN');
-    const currentCurrency = state.base.currencyName || 'TWD';
-    $('.currency-name-display').text(currentCurrency);
-    $('#fee-opt-fixed').text('固定 (' + currentCurrency + ')');
-
-    $('#fee-type').val(state.base.feeType);
-    if (state.base.feeType !== 'none') {
-      $('#fee-val-wrapper').removeClass('hidden').addClass('flex');
-      if (document.activeElement.id !== 'fee-val') $('#fee-val').val(valOrEmpty(state.base.feeVal));
-    } else {
-      $('#fee-val-wrapper').addClass('hidden').removeClass('flex');
-    }
-
-    if (state.base.carryMode === 'carry') {
-      $('#btn-mode-carry').attr('class', 'px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm');
-      $('#btn-mode-indep').attr('class', 'px-3 py-1.5 rounded-md transition-all text-blue-200 hover:text-white');
-      $('#mode-desc').text('承接模式：後一階段以前一階段的結果為基礎');
-      $('#capture-mode-label').text('模式：承接模式');
-    } else {
-      $('#btn-mode-indep').attr('class', 'px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm');
-      $('#btn-mode-carry').attr('class', 'px-3 py-1.5 rounded-md transition-all text-blue-200 hover:text-white');
-      $('#mode-desc').text('獨立模式：所有階段皆以「初始持倉」為基礎計算');
-      $('#capture-mode-label').text('模式：獨立模式');
-    }
-
-    if (fullRender) renderStages();
-    else updateStageResultsOnly();
-  }
-
-  $('#btn-mode-carry').click(() => { state.base.carryMode = 'carry'; calculate(true); });
-  $('#btn-mode-indep').click(() => { state.base.carryMode = 'indep'; calculate(true); });
-
-  $('.base-input').on('change input', function() {
-    const id = $(this).attr('id');
-    const val = $(this).val();
-
-    if (id === 'base-coin') {
-      state.base.coinName = String(val || '').toUpperCase();
-      $('.coin-name-display').text(state.base.coinName || 'COIN');
-      calculate(false);
-      return;
-    }
-
-    if (id === 'base-currency') {
-      state.base.currencyName = String(val || '').toUpperCase();
-      const curr = state.base.currencyName || 'TWD';
-      $('.currency-name-display').text(curr);
-      $('#fee-opt-fixed').text('固定 (' + curr + ')');
-      calculate(true);
-      return;
-    }
-
-    if (id === 'base-qty') state.base.qty0 = parseNum(val);
-    if (id === 'base-avg') state.base.avg0 = parseNum(val);
-    if (id === 'fee-type') {
-      state.base.feeType = val;
-      if (val === 'percent') state.base.feeVal = 0.1;
-      if (val === 'fixed') state.base.feeVal = 30;
-    }
-    if (id === 'fee-val') state.base.feeVal = parseNum(val);
-
-    calculate(false);
-  });
-
-  $('#stages-container').on('change input', '.stage-input, .stage-input-name', function(e) {
-    const stageCard = $(this).closest('.stage-card');
-    const stageId = stageCard.data('id');
-    const field = $(this).data('field');
-    const val = $(this).val();
-
-    const stageIndex = state.stages.findIndex(s => s.id === stageId);
-    if (stageIndex > -1) {
-      if (field === 'name') state.stages[stageIndex].name = val;
-      else state.stages[stageIndex][field] = parseNum(val);
-      if (e.type === 'change' || e.type === 'input') calculate(false);
-    }
-  });
-
-  $('#stages-container')
-    .on('click', '.btn-toggle-collapse', function(e) {
-      if ($(e.target).closest('input, button').length) return;
-      const stageId = $(this).closest('.stage-card').data('id');
-      const st = state.stages.find(s => s.id === stageId);
-      if (st) { st.collapsed = !st.collapsed; updateUI(true); }
-    })
-    .on('click', '.btn-toggle-mode', function() {
-      const stageId = $(this).closest('.stage-card').data('id');
-      const st = state.stages.find(s => s.id === stageId);
-      if (st) { st.mode = st.mode === 'target' ? 'budget' : 'target'; calculate(true); }
-    })
-    .on('click', '.btn-delete', function() {
-      const stageId = $(this).closest('.stage-card').data('id');
-      state.stages = state.stages.filter(s => s.id !== stageId);
-      calculate(true);
-    })
-    .on('click', '.btn-copy', function() {
-      const stageId = $(this).closest('.stage-card').data('id');
-      const st = state.stages.find(s => s.id === stageId);
-      if (st) {
-        const newSt = JSON.parse(JSON.stringify(st));
-        newSt.id = generateId();
-        newSt.name += ' (複製)';
-        const idx = state.stages.findIndex(s => s.id === stageId);
-        state.stages.splice(idx + 1, 0, newSt);
-        calculate(true);
-      }
-    })
-    .on('click', '.btn-move-up', function() {
-      const stageId = $(this).closest('.stage-card').data('id');
-      const idx = state.stages.findIndex(s => s.id === stageId);
-      if (idx > 0) { [state.stages[idx-1], state.stages[idx]] = [state.stages[idx], state.stages[idx-1]]; calculate(true); }
-    })
-    .on('click', '.btn-move-down', function() {
-      const stageId = $(this).closest('.stage-card').data('id');
-      const idx = state.stages.findIndex(s => s.id === stageId);
-      if (idx < state.stages.length - 1) { [state.stages[idx+1], state.stages[idx]] = [state.stages[idx], state.stages[idx+1]]; calculate(true); }
-    });
-
-  $('#btn-add-stage').click(() => {
-    state.stages.push({ id: generateId(), name: '新階段 ' + (state.stages.length + 1), targetAvg: 0, buyPrice: 0, mode: 'target', buyTwd: 0, collapsed: false });
-    calculate(true);
-    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
-  });
-
-  let resetTimeout;
-  $('#btn-reset').click(function() {
-    const $btn = $(this);
-    if ($btn.data('confirm')) {
-      state = getDefaultState();
-      calculate(true);
-
-      $btn.data('confirm', false)
-        .html('<i data-lucide="rotate-ccw" class="w-4 h-4"></i> 重設策略')
-        .removeClass('bg-red-600 text-white border-red-600 hover:bg-red-700')
-        .addClass('bg-red-50 text-red-600 border-red-200 hover:bg-red-100');
-      lucide.createIcons();
-      clearTimeout(resetTimeout);
-    } else {
-      $btn.data('confirm', true)
-        .html('<i data-lucide="alert-triangle" class="w-4 h-4"></i> 再按一次確認')
-        .removeClass('bg-red-50 text-red-600 border-red-200 hover:bg-red-100')
-        .addClass('bg-red-600 text-white border-red-600 hover:bg-red-700');
-      lucide.createIcons();
-
-      resetTimeout = setTimeout(() => {
-        $btn.data('confirm', false)
-          .html('<i data-lucide="rotate-ccw" class="w-4 h-4"></i> 重設策略')
-          .removeClass('bg-red-600 text-white border-red-600 hover:bg-red-700')
-          .addClass('bg-red-50 text-red-600 border-red-200 hover:bg-red-100');
-        lucide.createIcons();
-      }, 3000);
-    }
-  });
-
-    async function handleCapture(action) {
-      const card = document.getElementById('app-root');
-      if (!card) return;
-
-      try {
-        await document.fonts.ready;
-          
-        card.classList.add('capture-mode');
-          
-        const dataUrl = await modernScreenshot.domToPng(card, {
-          backgroundColor: '#ffffff',
-          scale: 3,
-          filter: (n) => !(n.classList && n.classList.contains('hide-on-capture'))
+          container.append(html);
         });
 
-        if (action === 'download') {
-          const a = document.createElement('a');
-          a.download = `dca-report-${Date.now()}.png`;
-          a.href = dataUrl;
-          a.click();
+        lucide.createIcons();
+      }
+
+      function updateStageResultsOnly() {
+        const currentCoin = state.base.coinName || 'COIN';
+        const currentCurrency = state.base.currencyName || 'TWD';
+
+        state.stages.forEach((st, idx) => {
+          const res = calculatedResults[idx];
+          const card = $(`.stage-card[data-id="${st.id}"]`);
+          if (!card.length) return;
+
+          const nameInput = card.find('.stage-input-name');
+          if (!nameInput.is(':focus')) nameInput.val(st.name);
+
+          const buyPriceInput = card.find('[data-field="buyPrice"]');
+          if (!buyPriceInput.is(':focus')) buyPriceInput.val(valOrEmpty(st.buyPrice));
+
+          const targetInput = card.find('[data-field="targetAvg"], [data-field="buyTwd"]');
+          if (!targetInput.is(':focus')) targetInput.val(valOrEmpty(st.mode === 'target' ? st.targetAvg : st.buyTwd));
+
+          const resultHtml = generateResultHtml(res, currentCoin, currentCurrency);
+          card.find('.stage-result-container').html(resultHtml);
+        });
+
+        lucide.createIcons();
+      }
+
+      function updateUI(fullRender = true) {
+        if (document.activeElement.id !== 'base-coin') $('#base-coin').val(valOrEmpty(state.base.coinName));
+        if (document.activeElement.id !== 'base-currency') $('#base-currency').val(state.base.currencyName || 'TWD');
+        if (document.activeElement.id !== 'base-qty') $('#base-qty').val(valOrEmpty(state.base.qty0));
+        if (document.activeElement.id !== 'base-avg') $('#base-avg').val(valOrEmpty(state.base.avg0));
+
+        const currentQ = state.base.qty0 === null ? 0 : state.base.qty0;
+        const currentAvg = state.base.avg0 === null ? 0 : state.base.avg0;
+        $('#base-total').text(formatNum(currentQ * currentAvg, 0));
+
+        $('.coin-name-display').text(state.base.coinName || 'COIN');
+        const currentCurrency = state.base.currencyName || 'TWD';
+        $('.currency-name-display').text(currentCurrency);
+        $('#fee-opt-fixed').text('固定 (' + currentCurrency + ')');
+
+        $('#fee-type').val(state.base.feeType);
+        if (state.base.feeType !== 'none') {
+          $('#fee-val-wrapper').removeClass('hidden').addClass('flex');
+          if (document.activeElement.id !== 'fee-val') $('#fee-val').val(valOrEmpty(state.base.feeVal));
         } else {
-          const blob = await (await fetch(dataUrl)).blob();
-          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+          $('#fee-val-wrapper').addClass('hidden').removeClass('flex');
         }
 
-      } catch (e) {
-        console.error(e);
-      } finally {
-        card.classList.remove('capture-mode');
+        if (state.base.carryMode === 'carry') {
+          $('#btn-mode-carry').attr('class', 'px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm');
+          $('#btn-mode-indep').attr('class', 'px-3 py-1.5 rounded-md transition-all text-blue-200 hover:text-white');
+          $('#mode-desc').text('承接模式：後一階段以前一階段的結果為基礎');
+          $('#capture-mode-label').text('模式：承接模式');
+        } else {
+          $('#btn-mode-indep').attr('class', 'px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm');
+          $('#btn-mode-carry').attr('class', 'px-3 py-1.5 rounded-md transition-all text-blue-200 hover:text-white');
+          $('#mode-desc').text('獨立模式：所有階段皆以「初始持倉」為基礎計算');
+          $('#capture-mode-label').text('模式：獨立模式');
+        }
+
+        if (fullRender) renderStages();
+        else updateStageResultsOnly();
       }
-    }
 
-  $('#btn-download').click(() => handleCapture('download'));
-  $('#btn-copy-img').click(() => handleCapture('copy'));
+      $('#btn-mode-carry').click(() => { state.base.carryMode = 'carry'; calculate(true); });
+      $('#btn-mode-indep').click(() => { state.base.carryMode = 'indep'; calculate(true); });
 
-  if (typeof ClipboardItem !== 'undefined' && !!navigator.clipboard && !!navigator.clipboard.write && window.location.protocol !== 'blob:') {
-  } else {
-    $('#btn-copy-img').prop('disabled', true).addClass('opacity-50').attr('title', '您的瀏覽器或預覽環境不支援直接複製圖片');
-  }
+      $('.base-input').on('change input', function () {
+        const id = $(this).attr('id');
+        const val = $(this).val();
 
-  function showModal(id) {
-    $(`#${id}`).removeClass('hidden');
-    setTimeout(() => { $(`#${id}-content`).removeClass('scale-95 opacity-0').addClass('scale-100 opacity-100'); }, 10);
-  }
-  function hideModal(id) {
-    $(`#${id}-content`).removeClass('scale-100 opacity-100').addClass('scale-95 opacity-0');
-    setTimeout(() => { $(`#${id}`).addClass('hidden'); }, 200);
-  }
-  $('.btn-close-modal').click(function() { hideModal($(this).closest('.fixed').attr('id')); });
+        if (id === 'base-coin') {
+          state.base.coinName = String(val || '').toUpperCase();
+          $('.coin-name-display').text(state.base.coinName || 'COIN');
+          calculate(false);
+          return;
+        }
 
-  $('#btn-export-text').click(() => {
-    const coin = state.base.coinName || 'COIN';
-    const currency = state.base.currencyName || 'TWD';
-
-    let text = `【加密貨幣DCA成本壓縮計算機試算報告 - ${coin}】\n計算模式：${state.base.carryMode === 'carry' ? '承接模式 (接續計算)' : '獨立模式 (各階段各自計算)'}\n\n`;
-    text += `[初始持倉]\n`;
-    text += `目前數量：${formatNum(state.base.qty0, 4)} ${coin}\n`;
-    text += `平均成本：${formatNum(state.base.avg0, 4)} ${currency}\n`;
-    text += `總計成本：${formatNum((state.base.qty0 || 0) * (state.base.avg0 || 0), 0)} ${currency}\n`;
-
-    let feeStr = '無';
-    if (state.base.feeType === 'percent') feeStr = `${state.base.feeVal}%`;
-    if (state.base.feeType === 'fixed') feeStr = `${state.base.feeVal} ${currency}`;
-    text += `手續費設定：${feeStr}\n\n`;
-    text += `=========================\n\n`;
-
-    state.stages.forEach((st, idx) => {
-      const res = calculatedResults[idx];
-      text += `[階段 ${idx + 1}: ${st.name}]\n`;
-      text += `買入價格：${formatNum(st.buyPrice, 4)} ${currency}\n`;
-      if (st.mode === 'target') text += `目標成本：${formatNum(st.targetAvg, 4)} ${currency}\n`;
-      else text += `投入預算：${formatNum(st.buyTwd, 0)} ${currency}\n`;
-
-      text += `-------------------------\n`;
-      if (res.error) {
-        text += `❌ 試算失敗：${res.error}\n\n`;
-      } else {
-        if (res.warn) text += `⚠️ 注意：${res.warn}\n`;
-        text += `需買入數量：${formatNum(res.buyQty, 4)} ${coin}\n`;
-        text += `需投入資金：${formatNum(res.costTwd, 0)} ${currency} (含手續費 ${formatNum(res.feeTwd, 0)} ${currency})\n`;
-        text += `達成後總數量：${formatNum(res.newQty, 4)} ${coin}\n`;
-        text += `達成後總成本：${formatNum(res.newCost, 0)} ${currency}\n`;
-        text += `達成後平均成本：${formatNum(res.newAvg, 4)} ${currency}\n`;
-        let drop = res.startAvg - res.newAvg;
-        text += `(均價降低：${formatNum(drop, 4)} ${currency})\n\n`;
-      }
-    });
-
-    $('#text-output-area').val(text);
-    showModal('modal-text');
-  });
-
-  $('#btn-copy-text').click(function() {
-    const ta = document.getElementById('text-output-area');
-    ta.select();
-    document.execCommand('copy');
-    const origText = $(this).html();
-    $(this).html('<i data-lucide="check" class="w-4 h-4"></i> 已複製');
-    lucide.createIcons();
-    setTimeout(() => { $(this).html(origText); lucide.createIcons(); }, 2000);
-  });
-
-  let jsonMode = 'export';
-  $('#btn-export-json').click(() => {
-    jsonMode = 'export';
-    $('#modal-json-title').html('<i data-lucide="download" class="w-4 h-4 text-blue-500"></i> 匯出 JSON 設定');
-    $('#modal-json-desc').text('以下是您目前的設定資料，請全選複製以妥善保存。');
-
-    $('#json-io-area').val(JSON.stringify(state, null, 2)).prop('readonly', true).removeClass('border-red-500');
-    $('#json-error').addClass('hidden');
-    $('#btn-json-action').html('<i data-lucide="copy" class="w-4 h-4"></i> 複製 JSON');
-    lucide.createIcons();
-    showModal('modal-json');
-  });
-
-  $('#btn-import-json').click(() => {
-    jsonMode = 'import';
-    $('#modal-json-title').html('<i data-lucide="upload" class="w-4 h-4 text-blue-500"></i> 匯入 JSON 設定');
-    $('#modal-json-desc').text('請貼上您之前保存的 JSON 設定檔。注意：這將會覆蓋目前所有設定。');
-    $('#json-io-area').val('').prop('readonly', false).removeClass('border-red-500');
-    $('#json-error').addClass('hidden');
-    $('#btn-json-action').html('<i data-lucide="check" class="w-4 h-4"></i> 確認匯入');
-    lucide.createIcons();
-    showModal('modal-json');
-  });
-
-  $('#btn-json-action').click(function() {
-    if (jsonMode === 'export') {
-      const ta = document.getElementById('json-io-area');
-      ta.select();
-      document.execCommand('copy');
-      $(this).html('<i data-lucide="check" class="w-4 h-4"></i> 已複製');
-      lucide.createIcons();
-      setTimeout(() => { hideModal('modal-json'); }, 1000);
-    } else {
-      try {
-        const imported = JSON.parse($('#json-io-area').val());
-        if (imported && typeof imported === 'object' && imported.base && Array.isArray(imported.stages)) {
-          state = imported;
-          state.base.coinName = state.base.coinName || '';
-          state.base.currencyName = state.base.currencyName || 'TWD';
-          state.base.qty0 = parseNum(state.base.qty0);
-          state.base.avg0 = parseNum(state.base.avg0);
-          state.base.feeVal = parseNum(state.base.feeVal);
+        if (id === 'base-currency') {
+          state.base.currencyName = String(val || '').toUpperCase();
+          const curr = state.base.currencyName || 'TWD';
+          $('.currency-name-display').text(curr);
+          $('#fee-opt-fixed').text('固定 (' + curr + ')');
           calculate(true);
-          hideModal('modal-json');
-        } else {
-          throw new Error('格式缺少必要欄位');
+          return;
         }
-      } catch (e) {
-        $('#json-io-area').addClass('border-red-500');
-        $('#json-error').removeClass('hidden');
+
+        if (id === 'base-qty') state.base.qty0 = parseNum(val);
+        if (id === 'base-avg') state.base.avg0 = parseNum(val);
+        if (id === 'fee-type') {
+          state.base.feeType = val;
+          if (val === 'percent') state.base.feeVal = 0.1;
+          if (val === 'fixed') state.base.feeVal = 30;
+        }
+        if (id === 'fee-val') state.base.feeVal = parseNum(val);
+
+        calculate(false);
+      });
+
+      $('#stages-container').on('change input', '.stage-input, .stage-input-name', function (e) {
+        const stageCard = $(this).closest('.stage-card');
+        const stageId = stageCard.data('id');
+        const field = $(this).data('field');
+        const val = $(this).val();
+
+        const stageIndex = state.stages.findIndex(s => s.id === stageId);
+        if (stageIndex > -1) {
+          if (field === 'name') state.stages[stageIndex].name = val;
+          else state.stages[stageIndex][field] = parseNum(val);
+          if (e.type === 'change' || e.type === 'input') calculate(false);
+        }
+      });
+
+      $('#stages-container')
+        .on('click', '.btn-toggle-collapse', function (e) {
+          if ($(e.target).closest('input, button').length) return;
+          const stageId = $(this).closest('.stage-card').data('id');
+          const st = state.stages.find(s => s.id === stageId);
+          if (st) { st.collapsed = !st.collapsed; updateUI(true); }
+        })
+        .on('click', '.btn-toggle-mode', function () {
+          const stageId = $(this).closest('.stage-card').data('id');
+          const st = state.stages.find(s => s.id === stageId);
+          if (st) { st.mode = st.mode === 'target' ? 'budget' : 'target'; calculate(true); }
+        })
+        .on('click', '.btn-delete', function () {
+          const stageId = $(this).closest('.stage-card').data('id');
+          state.stages = state.stages.filter(s => s.id !== stageId);
+          calculate(true);
+        })
+        .on('click', '.btn-copy', function () {
+          const stageId = $(this).closest('.stage-card').data('id');
+          const st = state.stages.find(s => s.id === stageId);
+          if (st) {
+            const newSt = JSON.parse(JSON.stringify(st));
+            newSt.id = generateId();
+            newSt.name += ' (複製)';
+            const idx = state.stages.findIndex(s => s.id === stageId);
+            state.stages.splice(idx + 1, 0, newSt);
+            calculate(true);
+          }
+        })
+        .on('click', '.btn-move-up', function () {
+          const stageId = $(this).closest('.stage-card').data('id');
+          const idx = state.stages.findIndex(s => s.id === stageId);
+          if (idx > 0) { [state.stages[idx - 1], state.stages[idx]] = [state.stages[idx], state.stages[idx - 1]]; calculate(true); }
+        })
+        .on('click', '.btn-move-down', function () {
+          const stageId = $(this).closest('.stage-card').data('id');
+          const idx = state.stages.findIndex(s => s.id === stageId);
+          if (idx < state.stages.length - 1) { [state.stages[idx + 1], state.stages[idx]] = [state.stages[idx], state.stages[idx + 1]]; calculate(true); }
+        });
+
+      $('#btn-add-stage').click(() => {
+        state.stages.push({ id: generateId(), name: '新階段 ' + (state.stages.length + 1), targetAvg: 0, buyPrice: 0, mode: 'target', buyTwd: 0, collapsed: false });
+        calculate(true);
+        setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
+      });
+
+      let resetTimeout;
+      $('#btn-reset').click(function () {
+        const $btn = $(this);
+        if ($btn.data('confirm')) {
+          state = getDefaultState();
+          calculate(true);
+
+          $btn.data('confirm', false)
+            .html('<i data-lucide="rotate-ccw" class="w-4 h-4"></i> 重設策略')
+            .removeClass('bg-red-600 text-white border-red-600 hover:bg-red-700')
+            .addClass('bg-red-50 text-red-600 border-red-200 hover:bg-red-100');
+          lucide.createIcons();
+          clearTimeout(resetTimeout);
+        } else {
+          $btn.data('confirm', true)
+            .html('<i data-lucide="alert-triangle" class="w-4 h-4"></i> 再按一次確認')
+            .removeClass('bg-red-50 text-red-600 border-red-200 hover:bg-red-100')
+            .addClass('bg-red-600 text-white border-red-600 hover:bg-red-700');
+          lucide.createIcons();
+
+          resetTimeout = setTimeout(() => {
+            $btn.data('confirm', false)
+              .html('<i data-lucide="rotate-ccw" class="w-4 h-4"></i> 重設策略')
+              .removeClass('bg-red-600 text-white border-red-600 hover:bg-red-700')
+              .addClass('bg-red-50 text-red-600 border-red-200 hover:bg-red-100');
+            lucide.createIcons();
+          }, 3000);
+        }
+      });
+
+      async function handleCapture(action) {
+        const src = document.getElementById('app-root');
+        if (!src) return;
+
+        // ✅ 1) clone 一份，避免動到畫面本體（防閃爍核心）
+        const clone = src.cloneNode(true);
+
+        // ✅ 2) 放到視窗外，且不影響版面
+        const rect = src.getBoundingClientRect();
+        clone.style.position = 'fixed';
+        clone.style.left = '-100000px';
+        clone.style.top = '0';
+        clone.style.width = rect.width + 'px';
+        clone.style.zIndex = '-1';
+
+        document.body.appendChild(clone);
+
+        try {
+          await document.fonts.ready;
+
+          // ✅ 3) capture-mode 只加在 clone 身上
+          clone.classList.add('capture-mode');
+
+          const dataUrl = await modernScreenshot.domToPng(clone, {
+            backgroundColor: '#ffffff',
+            scale: 3,
+            filter: (n) => !(n.classList && n.classList.contains('hide-on-capture'))
+          });
+
+          if (action === 'download') {
+            const a = document.createElement('a');
+            a.download = `dca-report-${Date.now()}.png`;
+            a.href = dataUrl;
+            a.click();
+          } else {
+            const blob = await (await fetch(dataUrl)).blob();
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          // ✅ 4) 清掉 clone
+          document.body.removeChild(clone);
+        }
       }
-    }
-  });
 
-  document.addEventListener('wheel', function() {
-    if (document.activeElement && document.activeElement.type === 'number') document.activeElement.blur();
-  });
+      $('#btn-download').click(() => handleCapture('download'));
+      $('#btn-copy-img').click(() => handleCapture('copy'));
 
-  calculate();
-  lucide.createIcons();
-});
-</script>
+      if (typeof ClipboardItem !== 'undefined' && !!navigator.clipboard && !!navigator.clipboard.write && window.location.protocol !== 'blob:') {
+      } else {
+        $('#btn-copy-img').prop('disabled', true).addClass('opacity-50').attr('title', '您的瀏覽器或預覽環境不支援直接複製圖片');
+      }
+
+      function showModal(id) {
+        $(`#${id}`).removeClass('hidden');
+        setTimeout(() => { $(`#${id}-content`).removeClass('scale-95 opacity-0').addClass('scale-100 opacity-100'); }, 10);
+      }
+      function hideModal(id) {
+        $(`#${id}-content`).removeClass('scale-100 opacity-100').addClass('scale-95 opacity-0');
+        setTimeout(() => { $(`#${id}`).addClass('hidden'); }, 200);
+      }
+      $('.btn-close-modal').click(function () { hideModal($(this).closest('.fixed').attr('id')); });
+
+      $('#btn-export-text').click(() => {
+        const coin = state.base.coinName || 'COIN';
+        const currency = state.base.currencyName || 'TWD';
+
+        let text = `【加密貨幣DCA成本壓縮計算機試算報告 - ${coin}】\n計算模式：${state.base.carryMode === 'carry' ? '承接模式 (接續計算)' : '獨立模式 (各階段各自計算)'}\n\n`;
+        text += `[初始持倉]\n`;
+        text += `目前數量：${formatNum(state.base.qty0, 4)} ${coin}\n`;
+        text += `平均成本：${formatNum(state.base.avg0, 4)} ${currency}\n`;
+        text += `總計成本：${formatNum((state.base.qty0 || 0) * (state.base.avg0 || 0), 0)} ${currency}\n`;
+
+        let feeStr = '無';
+        if (state.base.feeType === 'percent') feeStr = `${state.base.feeVal}%`;
+        if (state.base.feeType === 'fixed') feeStr = `${state.base.feeVal} ${currency}`;
+        text += `手續費設定：${feeStr}\n\n`;
+        text += `=========================\n\n`;
+
+        state.stages.forEach((st, idx) => {
+          const res = calculatedResults[idx];
+          text += `[階段 ${idx + 1}: ${st.name}]\n`;
+          text += `買入價格：${formatNum(st.buyPrice, 4)} ${currency}\n`;
+          if (st.mode === 'target') text += `目標成本：${formatNum(st.targetAvg, 4)} ${currency}\n`;
+          else text += `投入預算：${formatNum(st.buyTwd, 0)} ${currency}\n`;
+
+          text += `-------------------------\n`;
+          if (res.error) {
+            text += `❌ 試算失敗：${res.error}\n\n`;
+          } else {
+            if (res.warn) text += `⚠️ 注意：${res.warn}\n`;
+            text += `需買入數量：${formatNum(res.buyQty, 4)} ${coin}\n`;
+            text += `需投入資金：${formatNum(res.costTwd, 0)} ${currency} (含手續費 ${formatNum(res.feeTwd, 0)} ${currency})\n`;
+            text += `達成後總數量：${formatNum(res.newQty, 4)} ${coin}\n`;
+            text += `達成後總成本：${formatNum(res.newCost, 0)} ${currency}\n`;
+            text += `達成後平均成本：${formatNum(res.newAvg, 4)} ${currency}\n`;
+            let drop = res.startAvg - res.newAvg;
+            text += `(均價降低：${formatNum(drop, 4)} ${currency})\n\n`;
+          }
+        });
+
+        $('#text-output-area').val(text);
+        showModal('modal-text');
+      });
+
+      $('#btn-copy-text').click(function () {
+        const ta = document.getElementById('text-output-area');
+        ta.select();
+        document.execCommand('copy');
+        const origText = $(this).html();
+        $(this).html('<i data-lucide="check" class="w-4 h-4"></i> 已複製');
+        lucide.createIcons();
+        setTimeout(() => { $(this).html(origText); lucide.createIcons(); }, 2000);
+      });
+
+      let jsonMode = 'export';
+      $('#btn-export-json').click(() => {
+        jsonMode = 'export';
+        $('#modal-json-title').html('<i data-lucide="download" class="w-4 h-4 text-blue-500"></i> 匯出 JSON 設定');
+        $('#modal-json-desc').text('以下是您目前的設定資料，請全選複製以妥善保存。');
+
+        $('#json-io-area').val(JSON.stringify(state, null, 2)).prop('readonly', true).removeClass('border-red-500');
+        $('#json-error').addClass('hidden');
+        $('#btn-json-action').html('<i data-lucide="copy" class="w-4 h-4"></i> 複製 JSON');
+        lucide.createIcons();
+        showModal('modal-json');
+      });
+
+      $('#btn-import-json').click(() => {
+        jsonMode = 'import';
+        $('#modal-json-title').html('<i data-lucide="upload" class="w-4 h-4 text-blue-500"></i> 匯入 JSON 設定');
+        $('#modal-json-desc').text('請貼上您之前保存的 JSON 設定檔。注意：這將會覆蓋目前所有設定。');
+        $('#json-io-area').val('').prop('readonly', false).removeClass('border-red-500');
+        $('#json-error').addClass('hidden');
+        $('#btn-json-action').html('<i data-lucide="check" class="w-4 h-4"></i> 確認匯入');
+        lucide.createIcons();
+        showModal('modal-json');
+      });
+
+      $('#btn-json-action').click(function () {
+        if (jsonMode === 'export') {
+          const ta = document.getElementById('json-io-area');
+          ta.select();
+          document.execCommand('copy');
+          $(this).html('<i data-lucide="check" class="w-4 h-4"></i> 已複製');
+          lucide.createIcons();
+          setTimeout(() => { hideModal('modal-json'); }, 1000);
+        } else {
+          try {
+            const imported = JSON.parse($('#json-io-area').val());
+            if (imported && typeof imported === 'object' && imported.base && Array.isArray(imported.stages)) {
+              state = imported;
+              state.base.coinName = state.base.coinName || '';
+              state.base.currencyName = state.base.currencyName || 'TWD';
+              state.base.qty0 = parseNum(state.base.qty0);
+              state.base.avg0 = parseNum(state.base.avg0);
+              state.base.feeVal = parseNum(state.base.feeVal);
+              calculate(true);
+              hideModal('modal-json');
+            } else {
+              throw new Error('格式缺少必要欄位');
+            }
+          } catch (e) {
+            $('#json-io-area').addClass('border-red-500');
+            $('#json-error').removeClass('hidden');
+          }
+        }
+      });
+
+      document.addEventListener('wheel', function () {
+        if (document.activeElement && document.activeElement.type === 'number') document.activeElement.blur();
+      });
+
+      calculate();
+      lucide.createIcons();
+    });
+  </script>
 
 </body>
+
 </html>
