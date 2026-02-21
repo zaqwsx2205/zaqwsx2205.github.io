@@ -434,6 +434,21 @@
           </div>`;
           }
 
+          let avgColor = 'text-emerald-600';
+          let iconColor = 'text-emerald-500';
+          let iconName = 'arrow-down-right';
+
+          const diff = res.newAvg - res.startAvg;
+          if (diff > 1e-6) { // 均價上升
+            avgColor = 'text-red-600';
+            iconColor = 'text-red-500';
+            iconName = 'arrow-up-right';
+          } else if (diff >= -1e-6 && diff <= 1e-6) { // 均價持平
+            avgColor = 'text-slate-600';
+            iconColor = 'text-slate-500';
+            iconName = 'arrow-right';
+          }
+
           resultHtml = warnHtml + `
         <div class="pt-4 px-4 pb-4 border-t border-slate-100 stage-footer-results">
           <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
@@ -453,8 +468,8 @@
             <div class="flex flex-col text-right">
               <span class="text-[10px] font-bold text-slate-400 uppercase">新平均成本</span>
               <div class="flex items-center justify-end gap-1">
-                <span class="font-mono font-bold text-emerald-600 text-base">${formatNum(res.newAvg, 4)}</span>
-                <i data-lucide="arrow-down-right" class="w-4 h-4 text-emerald-500"></i>
+                <span class="font-mono font-bold ${avgColor} text-base">${formatNum(res.newAvg, 4)}</span>
+                <i data-lucide="${iconName}" class="w-4 h-4 ${iconColor}"></i>
               </div>
             </div>
           </div>
@@ -808,8 +823,15 @@
             text += `達成後總數量：${formatNum(res.newQty, 4)} ${coin}\n`;
             text += `達成後總成本：${formatNum(res.newCost, 0)} ${currency}\n`;
             text += `達成後平均成本：${formatNum(res.newAvg, 4)} ${currency}\n`;
-            let drop = res.startAvg - res.newAvg;
-            text += `(均價降低：${formatNum(drop, 4)} ${currency})\n\n`;
+            
+            const drop = res.startAvg - res.newAvg;
+            if (drop > 1e-6) {
+                text += `(均價降低：${formatNum(drop, 4)} ${currency})\n\n`;
+            } else if (drop < -1e-6) {
+                text += `(均價上升：${formatNum(Math.abs(drop), 4)} ${currency})\n\n`;
+            } else {
+                text += `(均價持平)\n\n`;
+            }
           }
         });
 
