@@ -125,6 +125,22 @@
             border-radius: 0 !important;
             box-shadow: none !important;
         }
+
+/* 讓輸入框透明後，不會露出外層灰底/綠底/橘底 */
+.capture-mode .bg-slate-50,
+.capture-mode .bg-blue-50\/50,
+.capture-mode .bg-emerald-50\/50,
+.capture-mode .bg-orange-50\/50,
+.capture-mode .bg-white {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* 如果某些地方還是有底色/陰影，直接保險清掉 */
+.capture-mode .stage-card,
+.capture-mode .stage-card * {
+  box-shadow: none !important;
+}
     </style>
 </head>
 
