@@ -53,7 +53,7 @@
         
         /* 隱藏外層 Wrapper 的背景與線框，但不影響 padding 避免文字貼邊 */
         .capture-mode .input-flex-wrapper {
-            border: none !important;
+            border-color: transparent !important;
             background: transparent !important;
             background-color: transparent !important;
             box-shadow: none !important;
@@ -65,7 +65,7 @@
 
         /* 隱藏原生 Input/Select 的預設樣式與下拉箭頭 */
         .capture-mode select, .capture-mode input {
-            border: none !important;
+            border-color: transparent !important;
             background: transparent !important;
             background-color: transparent !important;
             outline: none !important;
@@ -740,6 +740,15 @@ $(document).ready(function() {
       const card = document.getElementById('app-root');
       if (!card) return;
 
+      // 截圖前強制清理樣式 (針對截圖工具可能遺漏 !important 的防呆)
+      const elementsToTransparent = document.querySelectorAll('.input-flex-wrapper, .input-flex-wrapper input, .input-flex-wrapper select, .stage-input-name');
+      elementsToTransparent.forEach(el => {
+          el.setAttribute('data-orig-style', el.getAttribute('style') || '');
+          el.style.setProperty('background-color', 'transparent', 'important');
+          el.style.setProperty('border-color', 'transparent', 'important');
+          el.style.setProperty('box-shadow', 'none', 'important');
+      });
+
       try {
         await document.fonts.ready;
         
@@ -791,6 +800,11 @@ $(document).ready(function() {
         card.classList.remove('capture-mode');
         $('.hide-on-capture').removeClass('hidden-force');
         $('.show-on-capture-block').addClass('hidden').hide();
+        
+        // 截圖後還原樣式
+        elementsToTransparent.forEach(el => {
+            el.setAttribute('style', el.getAttribute('data-orig-style') || '');
+        });
       }
     }
 
