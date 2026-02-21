@@ -52,20 +52,19 @@
         .hidden-force { display: none !important; }
         
         .capture-mode .input-flex-wrapper, .capture-mode .border-b {
-            border: none !important;
+            border-color: transparent !important;
             background: transparent !important;
             box-shadow: none !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
+            /* 取消 padding: 0，保留原有排版間距避免文字貼邊 */
         }
         .capture-mode select, .capture-mode input {
-            border: none !important;
+            border-color: transparent !important;
             background: transparent !important;
             outline: none !important;
             appearance: none !important;
             -webkit-appearance: none !important;
             font-weight: 700 !important;
-            padding: 0 !important;
+            /* 取消 padding: 0，保留原有排版間距避免文字貼邊 */
             color: inherit;
             caret-color: transparent !important;
         }
