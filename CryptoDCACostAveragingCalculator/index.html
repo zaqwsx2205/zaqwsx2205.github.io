@@ -106,7 +106,7 @@
         </div>
         <div class="relative z-10 flex items-center justify-between">
             <p id="mode-desc" class="text-blue-100 text-sm opacity-90">後一階段以前一階段的計算結果為基礎</p>
-            <div class="text-xs font-medium text-blue-200 bg-blue-700/30 px-2 py-1 rounded">計價：TWD</div>
+            <div class="text-xs font-medium text-blue-200 bg-blue-700/30 px-2 py-1 rounded">計價：<span class="currency-name-display">TWD</span></div>
         </div>
     </div>
 
@@ -119,29 +119,40 @@
                     <i data-lucide="wallet" class="w-4 h-4 text-blue-500"></i>
                     <span>初始持倉 (Base Holdings)</span>
                 </div>
-                <div class="text-xs text-slate-500 font-mono font-medium">總成本: <span id="base-total" class="text-slate-700 font-bold text-sm">0</span> TWD</div>
+                <div class="text-xs text-slate-500 font-mono font-medium">總成本: <span id="base-total" class="text-slate-700 font-bold text-sm">0</span> <span class="currency-name-display">TWD</span></div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
-                <!-- 自訂幣種名稱 -->
-                <div class="space-y-1.5 col-span-2 pb-3 border-b border-slate-200/60">
-                    <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">自訂幣種名稱</label>
-                    <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px] bg-white w-full sm:w-1/2">
-                        <i data-lucide="coins" class="w-4 h-4 text-blue-400 shrink-0"></i>
-                        <input type="text" id="base-coin" value="" placeholder="例如: BTC, ETH" class="base-input w-full bg-transparent outline-none font-bold text-lg h-full text-blue-700 uppercase">
+                <!-- 自訂幣種名稱與計價幣別 -->
+                <div class="col-span-2 flex flex-col sm:flex-row gap-4 pb-3 border-b border-slate-200/60">
+                    <!-- 自訂幣種名稱 -->
+                    <div class="space-y-1.5 flex-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">自訂幣種名稱</label>
+                        <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px] bg-white w-full">
+                            <i data-lucide="coins" class="w-4 h-4 text-blue-400 shrink-0"></i>
+                            <input type="text" id="base-coin" value="" placeholder="例如: BTC, ETH" class="base-input w-full bg-transparent outline-none font-mono font-bold text-lg h-full text-blue-700 uppercase">
+                        </div>
+                    </div>
+                    <!-- 自訂計價幣別 -->
+                    <div class="space-y-1.5 flex-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">自訂計價幣別</label>
+                        <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-emerald-500 h-[44px] bg-white w-full">
+                            <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+                            <input type="text" id="base-currency" value="TWD" placeholder="例如: USDT, TWD" class="base-input w-full bg-transparent outline-none font-mono font-bold text-lg h-full text-emerald-700 uppercase">
+                        </div>
                     </div>
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">持有數量 (<span class="coin-name-display">COIN</span>)</label>
                     <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px] bg-white">
-                        <input type="number" step="any" id="base-qty" value="" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
+                        <input type="number" step="any" id="base-qty" value="0" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
                     </div>
                 </div>
                 <div class="space-y-1.5">
-                    <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5 text-blue-600">目前平均成本 (TWD)</label>
+                    <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5 text-blue-600">目前平均成本 (<span class="currency-name-display">TWD</span>)</label>
                     <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
-                        <input type="number" step="any" id="base-avg" value="" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
+                        <input type="number" step="any" id="base-avg" value="0" class="base-input w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
                     </div>
                 </div>
 
@@ -149,14 +160,14 @@
                     <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">手續費設定</label>
                     <div class="grid grid-cols-2 gap-4 w-full">
                         <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg h-[44px] bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
-                            <select id="fee-type" class="base-input w-full h-full px-3 text-sm bg-transparent outline-none font-medium text-slate-600">
+                            <select id="fee-type" class="base-input w-full h-full px-3 text-sm font-mono bg-transparent outline-none font-medium text-slate-600">
                                 <option value="none">無手續費</option>
                                 <option value="percent">百分比 (%)</option>
-                                <option value="fixed">固定 (TWD)</option>
+                                <option value="fixed" id="fee-opt-fixed">固定 (TWD)</option>
                             </select>
                         </div>
                         <div id="fee-val-wrapper" class="hidden input-flex-wrapper w-full flex items-center border border-slate-300 rounded-lg px-3 h-[44px] bg-white focus-within:ring-2 focus-within:ring-blue-500">
-                            <input type="number" step="any" id="fee-val" value="" class="base-input w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
+                            <input type="number" step="any" id="fee-val" value="0" class="base-input w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full text-slate-700">
                         </div>
                     </div>
                 </div>
@@ -281,10 +292,11 @@ $(document).ready(function() {
     const getDefaultState = () => ({
         base: {
             coinName: '',
-            qty0: null,
-            avg0: null,
+            currencyName: 'TWD',
+            qty0: 0,
+            avg0: 0,
             feeType: 'none',
-            feeVal: null,
+            feeVal: 0,
             carryMode: 'carry'
         },
         stages: []
@@ -370,7 +382,7 @@ $(document).ready(function() {
     }
 
     // --- Generate Result HTML Helper ---
-    function generateResultHtml(res, currentCoin) {
+    function generateResultHtml(res, currentCoin, currentCurrency) {
         let resultHtml = '';
         if (res.error) {
             resultHtml = `
@@ -396,7 +408,7 @@ $(document).ready(function() {
                             <span class="font-mono font-bold text-slate-700">${formatNum(res.buyQty, 2)}</span>
                         </div>
                         <div class="flex flex-col">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">需準備台幣 (TWD) ${res.feeTwd>0 ? '<span class="text-red-400 text-[9px]">(含手續費)</span>':''}</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">需投入資金 (<span class="currency-name-display">${currentCurrency}</span>) ${res.feeTwd>0 ? '<span class="text-red-400 text-[9px]">(含手續費)</span>':''}</span>
                             <span class="font-mono font-bold text-slate-700">${formatNum(res.costTwd, 0)}</span>
                         </div>
                         <div class="col-span-2 border-t border-dashed border-slate-100 my-1"></div>
@@ -429,6 +441,7 @@ $(document).ready(function() {
         }
 
         const currentCoin = state.base.coinName || 'COIN';
+        const currentCurrency = state.base.currencyName || 'TWD';
 
         state.stages.forEach((st, idx) => {
             const res = calculatedResults[idx];
@@ -439,7 +452,7 @@ $(document).ready(function() {
             const upDisabled = idx === 0;
             const downDisabled = idx === state.stages.length - 1;
 
-            let resultHtml = generateResultHtml(res, currentCoin);
+            let resultHtml = generateResultHtml(res, currentCoin, currentCurrency);
 
             const html = `
                 <div class="stage-card bg-white rounded-xl border border-slate-200 shadow-sm relative transition-all ${collapsedClass}" data-id="${st.id}">
@@ -447,7 +460,7 @@ $(document).ready(function() {
                     <div class="px-4 py-3 flex items-center justify-between cursor-pointer btn-toggle-collapse">
                         <div class="flex items-center gap-3">
                             <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">${idx + 1}</div>
-                            <input type="text" value="${st.name}" class="stage-input-name font-bold text-slate-700 bg-transparent outline-none w-40 sm:w-64 focus:border-b border-blue-400" data-field="name">
+                            <input type="text" value="${st.name}" class="stage-input-name font-mono font-bold text-slate-700 bg-transparent outline-none w-40 sm:w-64 focus:border-b border-blue-400" data-field="name">
                         </div>
                         <div class="flex items-center gap-1 shrink-0 hide-on-capture">
                             <button class="btn-move-up p-1.5 rounded transition-colors ${upDisabled ? 'text-slate-200 cursor-not-allowed' : 'text-slate-300 hover:text-blue-500 hover:bg-blue-50'}" title="上移" ${upDisabled ? 'disabled' : ''}><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
@@ -464,7 +477,7 @@ $(document).ready(function() {
                         <div class="grid grid-cols-2 gap-4 mt-2">
                             <!-- 買入價格 -->
                             <div class="space-y-1.5 col-span-2 sm:col-span-1">
-                                <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">預計買入價格</label>
+                                <label class="text-xs font-bold text-slate-500 uppercase flex items-center h-5">預計買入價格 (<span class="currency-name-display">${currentCurrency}</span>)</label>
                                 <div class="input-flex-wrapper flex items-center border border-slate-300 bg-white rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[40px]">
                                     <input type="number" step="any" value="${valOrEmpty(st.buyPrice)}" data-field="buyPrice" class="stage-input w-full bg-transparent outline-none font-mono text-sm font-semibold h-full text-slate-700">
                                 </div>
@@ -473,7 +486,7 @@ $(document).ready(function() {
                             <!-- 模式切換與參數 -->
                             <div class="space-y-1.5 col-span-2 sm:col-span-1">
                                 <div class="flex items-center justify-between h-5">
-                                    <label class="text-xs font-bold text-slate-500 uppercase">${isTarget ? '目標平均成本' : '預計投入預算 (TWD)'}</label>
+                                    <label class="text-xs font-bold text-slate-500 uppercase">${isTarget ? '目標平均成本' : '預計投入預算'} (<span class="currency-name-display">${currentCurrency}</span>)</label>
                                     <button class="btn-toggle-mode text-[10px] font-bold text-blue-500 hover:text-blue-700 bg-blue-50 px-2 py-0.5 rounded flex items-center gap-1 hide-on-capture">
                                         <i data-lucide="refresh-cw" class="w-3 h-3"></i> 切換模式
                                     </button>
@@ -497,6 +510,8 @@ $(document).ready(function() {
 
     function updateStageResultsOnly() {
         const currentCoin = state.base.coinName || 'COIN';
+        const currentCurrency = state.base.currencyName || 'TWD';
+        
         state.stages.forEach((st, idx) => {
             const res = calculatedResults[idx];
             const card = $(`.stage-card[data-id="${st.id}"]`);
@@ -511,7 +526,7 @@ $(document).ready(function() {
             const targetInput = card.find('[data-field="targetAvg"], [data-field="buyTwd"]');
             if (!targetInput.is(':focus')) targetInput.val(valOrEmpty(st.mode === 'target' ? st.targetAvg : st.buyTwd));
 
-            const resultHtml = generateResultHtml(res, currentCoin);
+            const resultHtml = generateResultHtml(res, currentCoin, currentCurrency);
             card.find('.stage-result-container').html(resultHtml);
         });
         lucide.createIcons();
@@ -520,6 +535,7 @@ $(document).ready(function() {
     function updateUI(fullRender = true) {
         // Base Info
         if (document.activeElement.id !== 'base-coin') $('#base-coin').val(valOrEmpty(state.base.coinName));
+        if (document.activeElement.id !== 'base-currency') $('#base-currency').val(state.base.currencyName || 'TWD');
         if (document.activeElement.id !== 'base-qty') $('#base-qty').val(valOrEmpty(state.base.qty0));
         if (document.activeElement.id !== 'base-avg') $('#base-avg').val(valOrEmpty(state.base.avg0));
         
@@ -527,8 +543,11 @@ $(document).ready(function() {
         const currentAvg = state.base.avg0 === null ? 0 : state.base.avg0;
         $('#base-total').text(formatNum(currentQ * currentAvg, 0));
         
-        // Update global coin display
+        // Update global coin and currency displays
         $('.coin-name-display').text(state.base.coinName || 'COIN');
+        const currentCurrency = state.base.currencyName || 'TWD';
+        $('.currency-name-display').text(currentCurrency);
+        $('#fee-opt-fixed').text('固定 (' + currentCurrency + ')');
 
         // Fee UI
         $('#fee-type').val(state.base.feeType);
@@ -574,6 +593,15 @@ $(document).ready(function() {
             state.base.coinName = val.toUpperCase();
             $('.coin-name-display').text(state.base.coinName || 'COIN');
             calculate(false);
+            return;
+        }
+
+        if (id === 'base-currency') {
+            state.base.currencyName = val.toUpperCase();
+            const curr = state.base.currencyName || 'TWD';
+            $('.currency-name-display').text(curr);
+            $('#fee-opt-fixed').text('固定 (' + curr + ')');
+            calculate(true); // Currency 改變會影響 Label 結構，進行全量渲染較安全
             return;
         }
 
@@ -657,7 +685,7 @@ $(document).ready(function() {
         state.stages.push({
             id: generateId(),
             name: "新階段 " + (state.stages.length + 1),
-            targetAvg: null, buyPrice: null, mode: "target", buyTwd: null, collapsed: false
+            targetAvg: 0, buyPrice: 0, mode: "target", buyTwd: 0, collapsed: false
         });
         calculate(true);
         setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
@@ -789,24 +817,26 @@ $(document).ready(function() {
     // Text Export
     $('#btn-export-text').click(() => {
         const coin = state.base.coinName || 'COIN';
+        const currency = state.base.currencyName || 'TWD';
+
         let text = `【加密貨幣DCA成本壓縮計算機試算報告 - ${coin}】\n計算模式：${state.base.carryMode === 'carry' ? '承接模式 (接續計算)' : '獨立模式 (各階段各自計算)'}\n\n`;
         text += `[初始持倉]\n`;
         text += `目前數量：${formatNum(state.base.qty0, 4)} ${coin}\n`;
-        text += `平均成本：${formatNum(state.base.avg0, 4)} TWD\n`;
-        text += `總計成本：${formatNum((state.base.qty0 || 0) * (state.base.avg0 || 0), 0)} TWD\n`;
+        text += `平均成本：${formatNum(state.base.avg0, 4)} ${currency}\n`;
+        text += `總計成本：${formatNum((state.base.qty0 || 0) * (state.base.avg0 || 0), 0)} ${currency}\n`;
         
         let feeStr = "無";
         if(state.base.feeType === 'percent') feeStr = `${state.base.feeVal}%`;
-        if(state.base.feeType === 'fixed') feeStr = `${state.base.feeVal} TWD`;
+        if(state.base.feeType === 'fixed') feeStr = `${state.base.feeVal} ${currency}`;
         text += `手續費設定：${feeStr}\n\n`;
         text += `=========================\n\n`;
 
         state.stages.forEach((st, idx) => {
             const res = calculatedResults[idx];
             text += `[階段 ${idx+1}: ${st.name}]\n`;
-            text += `買入價格：${formatNum(st.buyPrice, 4)} TWD\n`;
-            if (st.mode === 'target') text += `目標成本：${formatNum(st.targetAvg, 4)} TWD\n`;
-            else text += `投入預算：${formatNum(st.buyTwd, 0)} TWD\n`;
+            text += `買入價格：${formatNum(st.buyPrice, 4)} ${currency}\n`;
+            if (st.mode === 'target') text += `目標成本：${formatNum(st.targetAvg, 4)} ${currency}\n`;
+            else text += `投入預算：${formatNum(st.buyTwd, 0)} ${currency}\n`;
             
             text += `-------------------------\n`;
             if (res.error) {
@@ -814,12 +844,12 @@ $(document).ready(function() {
             } else {
                 if (res.warn) text += `⚠️ 注意：${res.warn}\n`;
                 text += `需買入數量：${formatNum(res.buyQty, 4)} ${coin}\n`;
-                text += `需投入台幣：${formatNum(res.costTwd, 0)} TWD (含手續費 ${formatNum(res.feeTwd, 0)} TWD)\n`;
+                text += `需投入資金：${formatNum(res.costTwd, 0)} ${currency} (含手續費 ${formatNum(res.feeTwd, 0)} ${currency})\n`;
                 text += `達成後總數量：${formatNum(res.newQty, 4)} ${coin}\n`;
-                text += `達成後總成本：${formatNum(res.newCost, 0)} TWD\n`;
-                text += `達成後平均成本：${formatNum(res.newAvg, 4)} TWD\n`;
+                text += `達成後總成本：${formatNum(res.newCost, 0)} ${currency}\n`;
+                text += `達成後平均成本：${formatNum(res.newAvg, 4)} ${currency}\n`;
                 let drop = res.startAvg - res.newAvg;
-                text += `(均價降低：${formatNum(drop, 4)} TWD)\n\n`;
+                text += `(均價降低：${formatNum(drop, 4)} ${currency})\n\n`;
             }
         });
 
@@ -878,7 +908,8 @@ $(document).ready(function() {
                     state = imported;
                     
                     // 防呆：確保讀入的 base 資料型態正確
-                    state.base.coinName = state.base.coinName || 'DOGE';
+                    state.base.coinName = state.base.coinName || '';
+                    state.base.currencyName = state.base.currencyName || 'TWD';
                     state.base.qty0 = parseNum(state.base.qty0);
                     state.base.avg0 = parseNum(state.base.avg0);
                     state.base.feeVal = parseNum(state.base.feeVal);
