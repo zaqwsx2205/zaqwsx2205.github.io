@@ -31,16 +31,6 @@
       -moz-appearance: textfield;
     }
 
-    .stage-card.collapsed .stage-body {
-      display: none;
-    }
-
-    .stage-card.collapsed .stage-footer-results {
-      border-top: none;
-      padding-top: 0;
-      margin-top: 0;
-    }
-
     textarea::-webkit-scrollbar {
       width: 8px;
     }
@@ -324,6 +314,11 @@
         return Number(num).toLocaleString('zh-TW', { minimumFractionDigits: d, maximumFractionDigits: d });
       };
 
+      const formatQty = (num) => {
+        if (num === null || num === undefined || isNaN(num) || num === '') return '-';
+        return Number(num).toLocaleString('zh-TW', { minimumFractionDigits: 0, maximumFractionDigits: 12 });
+      };
+
       const parseNum = (v) => {
         if (v === '' || v === null || v === undefined) return null;
         const n = parseFloat(v);
@@ -361,6 +356,7 @@
             startQ: state.base.carryMode === 'carry' ? currentQ : (state.base.qty0 === null ? 0 : state.base.qty0),
             startC: state.base.carryMode === 'carry' ? currentC : (state.base.qty0 === null ? 0 : state.base.qty0) * (state.base.avg0 === null ? 0 : state.base.avg0),
             buyQty: 0, costTwd: 0, feeTwd: 0, newQty: 0, newCost: 0, newAvg: 0,
+            targetFuturePrice: parseNum(st.targetFuturePrice),
             error: null, warn: null
           };
           res.startAvg = res.startQ > 0 ? res.startC / res.startQ : 0;
@@ -439,11 +435,11 @@
           let iconName = 'arrow-down-right';
 
           const diff = res.newAvg - res.startAvg;
-          if (diff > 1e-6) { // 均價上升
+          if (diff > 1e-6) {
             avgColor = 'text-red-600';
             iconColor = 'text-red-500';
             iconName = 'arrow-up-right';
-          } else if (diff >= -1e-6 && diff <= 1e-6) { // 均價持平
+          } else if (diff >= -1e-6 && diff <= 1e-6) {
             avgColor = 'text-slate-600';
             iconColor = 'text-slate-500';
             iconName = 'arrow-right';
@@ -454,7 +450,7 @@
           <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             <div class="flex flex-col">
               <span class="text-[10px] font-bold text-slate-400 uppercase">需買入數量 (<span class="coin-name-display">${currentCoin}</span>)</span>
-              <span class="font-mono font-bold text-slate-700">${formatNum(res.buyQty, 2)}</span>
+              <span class="font-mono font-bold text-slate-700">${formatQty(res.buyQty)}</span>
             </div>
             <div class="flex flex-col">
               <span class="text-[10px] font-bold text-slate-400 uppercase">需投入資金 (<span class="currency-name-display">${currentCurrency}</span>) ${res.feeTwd > 0 ? '<span class="text-red-400 text-[9px]">(含手續費)</span>' : ''}</span>
@@ -463,7 +459,7 @@
             <div class="col-span-2 border-t border-dashed border-slate-100 my-1"></div>
             <div class="flex flex-col">
               <span class="text-[10px] font-bold text-slate-400 uppercase">達成後數量 (<span class="coin-name-display">${currentCoin}</span>)</span>
-              <span class="font-mono font-bold text-blue-600 text-base">${formatNum(res.newQty, 2)}</span>
+              <span class="font-mono font-bold text-blue-600 text-base">${formatQty(res.newQty)}</span>
             </div>
             <div class="flex flex-col text-right">
               <span class="text-[10px] font-bold text-slate-400 uppercase">新平均成本</span>
@@ -472,8 +468,67 @@
                 <i data-lucide="${iconName}" class="w-4 h-4 ${iconColor}"></i>
               </div>
             </div>
-          </div>
-        </div>`;
+          </div>`;
+
+          let profitHtml = '';
+          const tp = res.targetFuturePrice;
+          const tpStr = valOrEmpty(tp);
+          const avgStr = formatNum(res.newAvg, 4);
+          const qtyStr = formatQty(res.newQty);
+
+          profitHtml = `
+            <div class="mt-3 p-3 rounded-lg border border-purple-200 bg-purple-50">
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-xs font-bold text-purple-700 flex items-center gap-1">
+                  <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> 潛在獲利與報酬率試算
+                </div>
+                <div class="flex items-center gap-2">
+                  <label class="text-[10px] font-bold text-purple-600 uppercase">預估未來現價</label>
+                  <div class="input-flex-wrapper flex items-center border border-purple-300 bg-white rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-purple-500 w-24 h-[28px] shadow-sm">
+                    <input type="number" step="any" value="${tpStr}" id="target-input-${res.id}" data-field="targetFuturePrice" class="stage-input target-price-input w-full bg-transparent outline-none font-mono text-xs font-bold h-full text-purple-700 text-right" placeholder="輸入現價">
+                  </div>
+                </div>
+              </div>
+          `;
+
+          if (tp > 0) {
+            const estProfit = (tp - res.newAvg) * res.newQty;
+            const estRoi = (estProfit / res.newCost) * 100;
+            const profitColor = estProfit >= 0 ? 'text-emerald-600' : 'text-red-600';
+            const roiColor = estRoi >= 0 ? 'text-emerald-600' : 'text-red-600';
+            const sign = estProfit > 0 ? '+' : '';
+
+            profitHtml += `
+              <div class="text-[11px] text-slate-600 space-y-1 mb-3">
+                <div class="font-medium">獲利金額 = (現價 − 平均成本) × 總數量</div>
+                <div class="font-mono text-purple-800 bg-purple-100/50 inline-block px-1.5 py-0.5 rounded font-bold">套用數據：(${formatNum(tp, 4)} − ${avgStr}) × ${qtyStr}</div>
+              </div>
+              <div class="pt-2 border-t border-purple-200/60 grid grid-cols-2 gap-2">
+                <div>
+                  <div class="text-[10px] font-bold text-slate-500 uppercase">預估獲利 (${currentCurrency})</div>
+                  <div class="font-mono font-bold text-base ${profitColor}">${sign}${formatNum(estProfit, 0)}</div>
+                </div>
+                <div class="text-right">
+                  <div class="text-[10px] font-bold text-slate-500 uppercase">預估報酬率</div>
+                  <div class="font-mono font-bold text-base ${roiColor}">${sign}${formatNum(estRoi, 2)}%</div>
+                </div>
+              </div>
+            </div>
+            `;
+          } else {
+            profitHtml += `
+              <div class="text-[11px] text-slate-600 space-y-1">
+                <div class="font-medium">獲利金額 = (現價 − 平均成本) × 總數量</div>
+                <div class="font-mono text-purple-800 bg-purple-100/50 inline-block px-1.5 py-0.5 rounded font-bold">套用數據：(現價 − ${avgStr}) × ${qtyStr}</div>
+              </div>
+              <div class="text-[10px] text-purple-500 mt-2 font-medium flex items-center gap-1">
+                <i data-lucide="info" class="w-3 h-3"></i> 於右上方輸入預估現價，自動算出具體報酬
+              </div>
+            </div>
+            `;
+          }
+
+          resultHtml += profitHtml + `</div>`;
         }
         return resultHtml;
       }
@@ -494,8 +549,6 @@
         state.stages.forEach((st, idx) => {
           const res = calculatedResults[idx];
           const isTarget = st.mode === 'target';
-          const collapsedClass = st.collapsed ? 'collapsed' : '';
-          const chevronDir = st.collapsed ? 'chevron-down' : 'chevron-up';
 
           const upDisabled = idx === 0;
           const downDisabled = idx === state.stages.length - 1;
@@ -503,9 +556,9 @@
           const resultHtml = generateResultHtml(res, currentCoin, currentCurrency);
 
           const html = `
-        <div class="stage-card bg-white rounded-xl border border-slate-200 shadow-sm relative transition-all ${collapsedClass}" data-id="${st.id}">
-          <div class="px-4 py-3 flex items-center justify-between cursor-pointer btn-toggle-collapse">
-            <div class="flex items-center gap-3">
+        <div class="stage-card bg-white rounded-xl border border-slate-200 shadow-sm relative transition-all" data-id="${st.id}">
+          <div class="px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3 w-full mr-2">
               <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">${idx + 1}</div>
               <input type="text" value="${st.name}" class="stage-input-name font-mono font-bold text-slate-700 bg-transparent outline-none w-full focus:border-b border-blue-400" data-field="name">
             </div>
@@ -514,8 +567,6 @@
               <button class="btn-move-down p-1.5 rounded transition-colors ${downDisabled ? 'text-slate-200 cursor-not-allowed' : 'text-slate-300 hover:text-blue-500 hover:bg-blue-50'}" title="下移" ${downDisabled ? 'disabled' : ''}><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
               <button class="btn-copy p-1.5 text-slate-300 hover:text-emerald-500 hover:bg-emerald-50 rounded transition-colors" title="複製"><i data-lucide="copy-plus" class="w-4 h-4"></i></button>
               <button class="btn-delete p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors" title="刪除"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-              <div class="w-px h-4 bg-slate-200 mx-1"></div>
-              <button class="p-1.5 text-slate-400 pointer-events-none"><i data-lucide="${chevronDir}" class="w-4 h-4"></i></button>
             </div>
           </div>
 
@@ -555,6 +606,12 @@
         const currentCoin = state.base.coinName || 'COIN';
         const currentCurrency = state.base.currencyName || 'TWD';
 
+        // 擷取當前 focus 狀態
+        let activeId = null;
+        if (document.activeElement && document.activeElement.classList.contains('target-price-input')) {
+          activeId = document.activeElement.id;
+        }
+
         state.stages.forEach((st, idx) => {
           const res = calculatedResults[idx];
           const card = $(`.stage-card[data-id="${st.id}"]`);
@@ -574,6 +631,17 @@
         });
 
         lucide.createIcons();
+
+        // 恢復游標 focus (重新指定以防跳位)
+        if (activeId) {
+          const el = document.getElementById(activeId);
+          if (el) {
+            el.focus();
+            const val = el.value;
+            el.value = '';
+            el.value = val;
+          }
+        }
       }
 
       function updateUI(fullRender = true) {
@@ -650,6 +718,12 @@
         calculate(false);
       });
 
+      // 全域綁定：任何一個階段卡片裡的「預估未來現價」輸入框被更改時
+      $(document).on('input', '.global-target-input', function () {
+        state.base.targetFuturePrice = parseNum($(this).val());
+        calculate(false); // 更新所有階段卡片的計算結果
+      });
+
       $('#stages-container').on('change input', '.stage-input, .stage-input-name', function (e) {
         const stageCard = $(this).closest('.stage-card');
         const stageId = stageCard.data('id');
@@ -665,12 +739,6 @@
       });
 
       $('#stages-container')
-        .on('click', '.btn-toggle-collapse', function (e) {
-          if ($(e.target).closest('input, button').length) return;
-          const stageId = $(this).closest('.stage-card').data('id');
-          const st = state.stages.find(s => s.id === stageId);
-          if (st) { st.collapsed = !st.collapsed; updateUI(true); }
-        })
         .on('click', '.btn-toggle-mode', function () {
           const stageId = $(this).closest('.stage-card').data('id');
           const st = state.stages.find(s => s.id === stageId);
@@ -705,7 +773,7 @@
         });
 
       $('#btn-add-stage').click(() => {
-        state.stages.push({ id: generateId(), name: '新階段 ' + (state.stages.length + 1), targetAvg: 0, buyPrice: 0, mode: 'target', buyTwd: 0, collapsed: false });
+        state.stages.push({ id: generateId(), name: '新階段 ' + (state.stages.length + 1), targetAvg: 0, buyPrice: 0, mode: 'target', buyTwd: 0, targetFuturePrice: 0 });
         calculate(true);
         setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
       });
@@ -796,7 +864,7 @@
 
         let text = `【加密貨幣DCA成本壓縮計算機試算報告 - ${coin}】\n計算模式：${state.base.carryMode === 'carry' ? '承接模式 (接續計算)' : '獨立模式 (各階段各自計算)'}\n\n`;
         text += `[初始持倉]\n`;
-        text += `目前數量：${formatNum(state.base.qty0, 4)} ${coin}\n`;
+        text += `目前數量：${formatQty(state.base.qty0)} ${coin}\n`;
         text += `平均成本：${formatNum(state.base.avg0, 4)} ${currency}\n`;
         text += `總計成本：${formatNum((state.base.qty0 || 0) * (state.base.avg0 || 0), 0)} ${currency}\n`;
 
@@ -818,19 +886,31 @@
             text += `❌ 試算失敗：${res.error}\n\n`;
           } else {
             if (res.warn) text += `⚠️ 注意：${res.warn}\n`;
-            text += `需買入數量：${formatNum(res.buyQty, 4)} ${coin}\n`;
+            text += `需買入數量：${formatQty(res.buyQty)} ${coin}\n`;
             text += `需投入資金：${formatNum(res.costTwd, 0)} ${currency} (含手續費 ${formatNum(res.feeTwd, 0)} ${currency})\n`;
-            text += `達成後總數量：${formatNum(res.newQty, 4)} ${coin}\n`;
+            text += `達成後總數量：${formatQty(res.newQty)} ${coin}\n`;
             text += `達成後總成本：${formatNum(res.newCost, 0)} ${currency}\n`;
             text += `達成後平均成本：${formatNum(res.newAvg, 4)} ${currency}\n`;
             
             const drop = res.startAvg - res.newAvg;
             if (drop > 1e-6) {
-                text += `(均價降低：${formatNum(drop, 4)} ${currency})\n\n`;
+                text += `(均價降低：${formatNum(drop, 4)} ${currency})\n`;
             } else if (drop < -1e-6) {
-                text += `(均價上升：${formatNum(Math.abs(drop), 4)} ${currency})\n\n`;
+                text += `(均價上升：${formatNum(Math.abs(drop), 4)} ${currency})\n`;
             } else {
-                text += `(均價持平)\n\n`;
+                text += `(均價持平)\n`;
+            }
+
+            const tp = st.targetFuturePrice;
+            if (tp > 0 && res.newCost > 0) {
+              const estProfit = (tp - res.newAvg) * res.newQty;
+              const estRoi = (estProfit / res.newCost) * 100;
+              const sign = estProfit > 0 ? '+' : '';
+              text += `\n[潛在獲利試算 @ 預估現價 ${formatNum(tp, 4)}]\n`;
+              text += `預估獲利：${sign}${formatNum(estProfit, 0)} ${currency}\n`;
+              text += `預估報酬：${sign}${formatNum(estRoi, 2)}%\n\n`;
+            } else {
+              text += `\n`;
             }
           }
         });
@@ -886,11 +966,22 @@
             const imported = JSON.parse($('#json-io-area').val());
             if (imported && typeof imported === 'object' && imported.base && Array.isArray(imported.stages)) {
               state = imported;
+              
+              // 防呆與向下相容：處理舊版 JSON
               state.base.coinName = state.base.coinName || '';
               state.base.currencyName = state.base.currencyName || 'TWD';
               state.base.qty0 = parseNum(state.base.qty0);
               state.base.avg0 = parseNum(state.base.avg0);
               state.base.feeVal = parseNum(state.base.feeVal);
+              
+              const legacyTp = parseNum(state.base.targetFuturePrice);
+              state.stages.forEach(s => {
+                  if (s.targetFuturePrice === undefined) {
+                      s.targetFuturePrice = legacyTp || 0;
+                  }
+              });
+              delete state.base.targetFuturePrice;
+              
               calculate(true);
               hideModal('modal-json');
             } else {
