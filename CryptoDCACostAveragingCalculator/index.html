@@ -710,28 +710,82 @@ $(document).ready(function() {
   });
 
   // =========================
-  // modern-screenshot Capture (跟卡交易計算機一致的簡潔版)
+  // modern-screenshot Capture (強制清掉輸入框底色/邊框版本)
   // =========================
   async function handleCapture(action) {
     const card = document.getElementById('app-root');
     if (!card) return;
-
+  
+    // 記錄並還原 inline style（最穩）
+    const patched = [];
+    const rememberAndSet = (el, styles) => {
+      patched.push([el, el.getAttribute('style')]); // 記住原本 style
+      for (const [k, v] of Object.entries(styles)) {
+        el.style.setProperty(k, v, 'important');
+      }
+    };
+  
     try {
       await document.fonts.ready;
-
-      // 避免 focus-within:ring 被截進去
+  
+      // 避免 focus / ring 被截進去
       if (document.activeElement && typeof document.activeElement.blur === 'function') {
         document.activeElement.blur();
       }
-
+  
+      // 進入截圖模式（保留你原本的 class 機制）
       card.classList.add('capture-mode');
-
+  
+      // 隱藏不需要的按鈕區（你原本就有）
+      $('.hide-on-capture').addClass('hidden-force');
+      $('.show-on-capture-block').removeClass('hidden').show();
+  
+      // ========= 核心：把所有輸入框「外層盒子」強制變透明/無框/無陰影/無圓角 =========
+      card.querySelectorAll('.input-flex-wrapper').forEach(el => {
+        rememberAndSet(el, {
+          'background': 'transparent',
+          'background-color': 'transparent',
+          'border': '0',
+          'border-width': '0',
+          'border-color': 'transparent',
+          'box-shadow': 'none',
+          'padding': '0',
+          'border-radius': '0'
+        });
+      });
+  
+      // 把 input/select/textarea 本身也強制透明（雙保險）
+      card.querySelectorAll('input, select, textarea').forEach(el => {
+        rememberAndSet(el, {
+          'background': 'transparent',
+          'background-color': 'transparent',
+          'border': '0',
+          'border-width': '0',
+          'border-color': 'transparent',
+          'box-shadow': 'none',
+          'outline': 'none',
+          'caret-color': 'transparent'
+        });
+      });
+  
+      // 避免 stage 名稱 focus:border-b 那條線被截進去
+      card.querySelectorAll('.stage-input-name').forEach(el => {
+        rememberAndSet(el, {
+          'border-bottom': '0',
+          'box-shadow': 'none',
+          'outline': 'none'
+        });
+      });
+  
+      // 確保 icon 都已轉成 svg
+      lucide.createIcons();
+  
       const dataUrl = await modernScreenshot.domToPng(card, {
         backgroundColor: '#ffffff',
         scale: 3,
         filter: (n) => !(n.classList && n.classList.contains('hide-on-capture'))
       });
-
+  
       if (action === 'download') {
         const a = document.createElement('a');
         const coinName = (state.base.coinName || 'COIN').toUpperCase();
@@ -741,18 +795,18 @@ $(document).ready(function() {
       } else {
         const blob = await (await fetch(dataUrl)).blob();
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-
+  
         $('#icon-copy-img').replaceWith('<i id="icon-copy-img" data-lucide="check" class="w-4 h-4"></i>');
         $('#text-copy-img').text('已複製截圖！');
         lucide.createIcons();
-
+  
         setTimeout(() => {
           $('#icon-copy-img').replaceWith('<i id="icon-copy-img" data-lucide="copy" class="w-4 h-4"></i>');
           $('#text-copy-img').text('複製截圖');
           lucide.createIcons();
         }, 2000);
       }
-
+  
     } catch (e) {
       console.error(e);
       const $btn = action === 'download' ? $('#btn-download') : $('#btn-copy-img');
@@ -761,7 +815,16 @@ $(document).ready(function() {
       lucide.createIcons();
       setTimeout(() => { $btn.html(origHtml); lucide.createIcons(); }, 2000);
     } finally {
+      // 還原 inline style
+      for (const [el, oldStyle] of patched) {
+        if (oldStyle === null) el.removeAttribute('style');
+        else el.setAttribute('style', oldStyle);
+      }
+  
+      // 還原 UI
       card.classList.remove('capture-mode');
+      $('.hide-on-capture').removeClass('hidden-force');
+      $('.show-on-capture-block').addClass('hidden').hide();
     }
   }
 
