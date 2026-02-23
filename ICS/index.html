@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自由裁剪圖片工具</title>
+    <!-- 引入 Tailwind CSS 進行快速、現代化的樣式排版 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        body {
+            font-family: "微軟正黑體", "Microsoft JhengHei", sans-serif;
+            background-color: #f3f4f6;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        canvas {
+            cursor: crosshair;
+            touch-action: none; /* 防止在畫布上觸控拖曳時引發頁面滾動 */
+        }
+    </style>
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+      import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyD0F8-hsmaR0mHx7wHfyntJ2r2ZzIjaw14",
+        authDomain: "zaqwsx2205-e7ce0.firebaseapp.com",
+        projectId: "zaqwsx2205-e7ce0",
+        storageBucket: "zaqwsx2205-e7ce0.firebasestorage.app",
+        messagingSenderId: "962935195152",
+        appId: "1:962935195152:web:f829932baf43abfd6b6c95",
+        measurementId: "G-51N5EB5ZWQ"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+
+      // 將 logEvent 暴露到全域，供底下的 jQuery 腳本呼叫
+      window.trackEvent = function(eventName, eventParams) {
+        logEvent(analytics, eventName, eventParams);
+      };
+    </script>
+</head>
+
+<body class="min-h-screen p-4 md:p-8 text-gray-800">
+
+    <div class="max-w-6xl mx-auto space-y-6">
+        <!-- 標題與說明 -->
+        <header class="text-center space-y-2">
+            <h1 class="text-3xl font-bold text-gray-900">自由裁剪圖片工具</h1>
+        </header>
+
+        <!-- 工具區塊 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- 左側：編輯區 -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-lg font-semibold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                        </svg>
+                        來源圖片
+                    </h2>
+                    <label class="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors shadow-sm">
+                        選擇檔案
+                        <input type="file" id="fileInput" class="hidden" accept="image/*">
+                    </label>
+                </div>
+                
+                <p class="text-sm text-gray-500 mb-4">支援點擊選擇檔案、拖曳圖片載入，或直接使用 <kbd class="bg-gray-200 px-1 rounded">Ctrl+V</kbd> 貼上圖片</p>
+                
+                <!-- 畫布容器 -->
+                <div id="dropZone" class="relative flex-grow flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl overflow-hidden transition-colors">
+                    <span id="placeholderText" class="absolute text-gray-400 pointer-events-none select-none text-center px-4">
+                        尚未載入圖片<br><span class="text-sm">請上傳或貼上圖片</span>
+                    </span>
+                    <canvas id="imageCanvas" width="800" height="600" class="max-w-full h-auto hidden"></canvas>
+                </div>
+                <p class="text-xs text-gray-400 mt-3 text-center">💡 提示：在圖片上按住滑鼠左鍵拖曳即可框選裁剪範圍</p>
+            </div>
+
+            <!-- 右側：結果區 -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1z" clip-rule="evenodd" />
+                            <path d="M11 4a1 1 0 10-2 0v1a1 1 0 002 0V4zM10 7a1 1 0 011 1v1h2a1 1 0 110 2h-3a1 1 0 01-1-1V8a1 1 0 011-1zM16 9a1 1 0 100 2h1a1 1 0 100-2h-1zM9 13a1 1 0 011-1h1a1 1 0 110 2v2a1 1 0 11-2 0v-3zM7 11a1 1 0 100-2H6a1 1 0 100 2h1zM17 13a1 1 0 01-1 1h-2a1 1 0 110-2h2a1 1 0 011 1zM16 17a1 1 0 100-2h-3a1 1 0 100 2h3z" />
+                        </svg>
+                        裁剪結果預覽
+                    </h2>
+                    <div class="flex gap-2">
+                        <button id="copyBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            複製圖片
+                        </button>
+                        <button id="downloadBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            下載圖片
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex-grow flex items-center justify-center bg-gray-50 border border-gray-100 rounded-xl overflow-auto no-scrollbar relative p-2 min-h-[300px]">
+                    <span id="resultPlaceholder" class="absolute text-gray-400 select-none">尚未產生裁剪結果</span>
+                    <img id="resultImg" src="" class="max-w-full hidden shadow-md" alt="裁剪結果" />
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 提示訊息容器 -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 flex flex-col gap-2 z-50"></div>
+
+    <script>
+        $(document).ready(function () {
+            // --- DOM 元素與 Context ---
+            const $canvas = $('#imageCanvas');
+            const canvas = $canvas[0]; // 取得原生 DOM 元素以使用 Canvas API
+            const ctx = canvas.getContext('2d');
+            
+            const $dropZone = $('#dropZone');
+            const $placeholderText = $('#placeholderText');
+            const $resultImg = $('#resultImg');
+            const $resultPlaceholder = $('#resultPlaceholder');
+            const $downloadBtn = $('#downloadBtn');
+            const $copyBtn = $('#copyBtn');
+            const $toastContainer = $('#toastContainer');
+
+            // --- 提示訊息邏輯 (Toast) ---
+            const showToast = (message, type = 'success') => {
+                const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+                const $toast = $(`
+                    <div class="${bgColor} text-white px-4 py-3 rounded shadow-lg transition-opacity duration-300 opacity-0 flex items-center gap-2">
+                        <span>${message}</span>
+                    </div>
+                `);
+                $toastContainer.append($toast);
+                
+                // 觸發顯示動畫
+                setTimeout(() => $toast.removeClass('opacity-0'), 10);
+                
+                // 3秒後自動淡出移除
+                setTimeout(() => {
+                    $toast.addClass('opacity-0');
+                    setTimeout(() => $toast.remove(), 300);
+                }, 3000);
+            };
+
+            // --- 狀態變數 ---
+            const image = new Image();
+            let hasImage = false;
+            
+            // 圖片在 Canvas 中的實際繪製位置與大小
+            let imgRect = { x: 0, y: 0, w: 0, h: 0 };
+            
+            // 拖曳選取框的狀態
+            let selection = { x: 0, y: 0, w: 0, h: 0, startX: 0, startY: 0, isSelecting: false };
+
+            // --- 圖片載入與處理邏輯 ---
+            const loadImage = (src) => {
+                image.onload = () => {
+                    hasImage = true;
+                    $placeholderText.addClass('hidden');
+                    $canvas.removeClass('hidden');
+                    
+                    const canvasW = canvas.width;
+                    const canvasH = canvas.height;
+                    const scale = Math.min(canvasW / image.width, canvasH / image.height);
+                    
+                    imgRect.w = image.width * scale;
+                    imgRect.h = image.height * scale;
+                    imgRect.x = (canvasW - imgRect.w) / 2;
+                    imgRect.y = (canvasH - imgRect.h) / 2;
+
+                    selection = { x: 0, y: 0, w: 0, h: 0, startX: 0, startY: 0, isSelecting: false };
+                    renderCanvas();
+                    
+                    $resultImg.addClass('hidden');
+                    $resultPlaceholder.removeClass('hidden');
+                    $downloadBtn.prop('disabled', true);
+                    $copyBtn.prop('disabled', true);
+                };
+                image.src = src;
+            };
+
+            const handleFile = (file, method = 'unknown') => {
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => loadImage(e.target.result);
+                    reader.readAsDataURL(file);
+
+                    // 記錄圖片載入成功事件
+                    if (window.trackEvent) window.trackEvent('upload_image', { method: method });
+                } else {
+                    showToast("請選擇有效的圖片檔案！", "error");
+                    
+                    // 記錄圖片載入失敗事件
+                    if (window.trackEvent) window.trackEvent('upload_error', { method: method, file_type: file ? file.type : 'none' });
+                }
+            };
+
+            // --- jQuery 事件監聽：上傳、拖曳、貼上 ---
+            $('#fileInput').on('change', function (e) {
+                handleFile(e.target.files[0], 'button');
+            });
+
+            $dropZone.on('dragover', function (e) {
+                e.preventDefault();
+                $(this).addClass('border-blue-500 bg-blue-50');
+            }).on('dragleave', function () {
+                $(this).removeClass('border-blue-500 bg-blue-50');
+            }).on('drop', function (e) {
+                e.preventDefault();
+                $(this).removeClass('border-blue-500 bg-blue-50');
+                const files = e.originalEvent.dataTransfer.files;
+                if (files.length > 0) handleFile(files[0], 'drag_drop');
+            });
+
+            $(document).on('paste', function (e) {
+                const items = (e.originalEvent.clipboardData || window.clipboardData).items;
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        handleFile(items[i].getAsFile(), 'paste');
+                        break;
+                    }
+                }
+            });
+
+            // --- 畫布繪製邏輯 ---
+            const renderCanvas = () => {
+                if (!hasImage) return;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#f9fafb';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.drawImage(image, imgRect.x, imgRect.y, imgRect.w, imgRect.h);
+
+                if (selection.w > 0 && selection.h > 0) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.fillRect(imgRect.x, imgRect.y, imgRect.w, imgRect.h);
+
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.fillRect(selection.x, selection.y, selection.w, selection.h);
+                    ctx.restore();
+
+                    ctx.strokeStyle = '#3b82f6';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeRect(selection.x, selection.y, selection.w, selection.h);
+                    
+                    ctx.fillStyle = '#3b82f6';
+                    ctx.setLineDash([]);
+                    const handleSize = 6;
+                    const drawHandle = (hx, hy) => ctx.fillRect(hx - handleSize/2, hy - handleSize/2, handleSize, handleSize);
+                    drawHandle(selection.x, selection.y);
+                    drawHandle(selection.x + selection.w, selection.y);
+                    drawHandle(selection.x, selection.y + selection.h);
+                    drawHandle(selection.x + selection.w, selection.y + selection.h);
+                }
+            };
+
+            // --- 游標與座標轉換計算 ---
+            const getMousePos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                
+                const clientX = e.clientX || (e.originalEvent.touches && e.originalEvent.touches[0].clientX);
+                const clientY = e.clientY || (e.originalEvent.touches && e.originalEvent.touches[0].clientY);
+
+                let mx = (clientX - rect.left) * scaleX;
+                let my = (clientY - rect.top) * scaleY;
+
+                mx = Math.max(imgRect.x, Math.min(mx, imgRect.x + imgRect.w));
+                my = Math.max(imgRect.y, Math.min(my, imgRect.y + imgRect.h));
+
+                return { x: mx, y: my };
+            };
+
+            // --- 畫布拖曳 jQuery 事件綁定 ---
+            $canvas.on('mousedown touchstart', function (e) {
+                if (!hasImage) return;
+                // e.preventDefault();
+                const pos = getMousePos(e);
+                selection.isSelecting = true;
+                selection.startX = pos.x;
+                selection.startY = pos.y;
+                selection.x = pos.x;
+                selection.y = pos.y;
+                selection.w = 0;
+                selection.h = 0;
+            });
+
+            $(window).on('mousemove touchmove', function (e) {
+                if (!selection.isSelecting) return;
+                // e.preventDefault();
+                const pos = getMousePos(e);
+                
+                selection.x = Math.min(pos.x, selection.startX);
+                selection.y = Math.min(pos.y, selection.startY);
+                selection.w = Math.abs(pos.x - selection.startX);
+                selection.h = Math.abs(pos.y - selection.startY);
+                
+                renderCanvas();
+            });
+
+            $(window).on('mouseup touchend', function () {
+                if (!selection.isSelecting) return;
+                selection.isSelecting = false;
+                
+                if (selection.w > 10 && selection.h > 10) {
+                    performCrop();
+                } else {
+                    selection.w = 0;
+                    selection.h = 0;
+                    renderCanvas();
+                }
+            });
+
+            // --- 執行裁剪邏輯 ---
+            const performCrop = () => {
+                if (selection.w === 0 || selection.h === 0) return;
+
+                const scaleX = image.width / imgRect.w;
+                const scaleY = image.height / imgRect.h;
+
+                const cropX = (selection.x - imgRect.x) * scaleX;
+                const cropY = (selection.y - imgRect.y) * scaleY;
+                const cropW = selection.w * scaleX;
+                const cropH = selection.h * scaleY;
+
+                const cropCanvas = document.createElement('canvas');
+                cropCanvas.width = cropW;
+                cropCanvas.height = cropH;
+                const cropCtx = cropCanvas.getContext('2d');
+
+                cropCtx.drawImage(image, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+                const dataUrl = cropCanvas.toDataURL('image/png');
+                $resultImg.attr('src', dataUrl).removeClass('hidden');
+                $resultPlaceholder.addClass('hidden');
+                $downloadBtn.prop('disabled', false);
+                $copyBtn.prop('disabled', false);
+
+                // 記錄裁剪成功事件
+                if (window.trackEvent) window.trackEvent('crop_image', { width: Math.round(cropW), height: Math.round(cropH) });
+            };
+
+            // --- 下載按鈕邏輯 ---
+            $downloadBtn.on('click', function () {
+                if ($(this).prop('disabled')) return;
+                const link = document.createElement('a');
+                link.download = `cropped_image_${new Date().getTime()}.png`;
+                link.href = $resultImg.attr('src');
+                link.click();
+
+                // 記錄下載圖片事件
+                if (window.trackEvent) window.trackEvent('download_image');
+            });
+
+            // --- 複製圖片邏輯 ---
+            $copyBtn.on('click', async function () {
+                if ($(this).prop('disabled')) return;
+                
+                const dataUrl = $resultImg.attr('src');
+                if (!dataUrl) return;
+
+                try {
+                    // 將 Base64 轉換回二進位 Blob 格式以寫入剪貼簿
+                    const response = await fetch(dataUrl);
+                    const blob = await response.blob();
+                    
+                    // 使用 Clipboard API 寫入剪貼簿
+                    await navigator.clipboard.write([
+                        new ClipboardItem({
+                            [blob.type]: blob
+                        })
+                    ]);
+                    
+                    showToast("圖片已成功複製到剪貼簿！");
+                    
+                    // 記錄複製成功事件
+                    if (window.trackEvent) window.trackEvent('copy_image', { status: 'success' });
+                } catch (err) {
+                    console.error('複製失敗:', err);
+                    showToast("複製失敗，您的環境或瀏覽器權限可能不支援此功能。", "error");
+                    
+                    // 記錄複製失敗事件
+                    if (window.trackEvent) window.trackEvent('copy_image', { status: 'error', error_msg: err.message });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+

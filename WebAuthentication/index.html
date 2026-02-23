@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Authentication</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.5/base64.min.js"></script>
+    <script src="./helpers.js"></script>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div id="target1">指紋辨識點擊註冊</div>
+
+    <div id="target2">指紋辨識點擊登入</div>
+</body>
+
+<script type="module">
+    import { decode } from './node_modules/cbor-x/decode.js'
+
+    let credentialId = null;
+
+    $("#target1").on("click", async function () {
+
+        const challenge = new Uint8Array(32);
+        window.crypto.getRandomValues(challenge);
+
+        const userID = 'Kosv9fPtkDoh4Oz7Yq/pVgWHS8HhdlCto5cR0aBoVMw=';
+        const id = Uint8Array.from(window.atob(userID), c => c.charCodeAt(0));
+
+        const publicKeyCredentialCreationOptions = {
+            challenge,
+            rp: {
+                name: "localhost",
+            },
+            user: {
+                id,
+                name: "zaqwsx2205@gmail.com",
+                displayName: "zaqwsx2205",
+            },
+            pubKeyCredParams: [
+                { 'type': 'public-key', 'alg': -7 },
+                { 'type': 'public-key', 'alg': -257 }
+            ],
+            timeout: 60000,
+            attestation: "direct"
+        };
+
+
+        await navigator.credentials.create({
+            publicKey: publicKeyCredentialCreationOptions
+        }).then((e) => {
+            console.log(e);
+            console.log(e);
+
+            const utf8Decoder = new TextDecoder('utf-8');
+            const decodedClientData = utf8Decoder.decode(e.response.clientDataJSON)
+            const clientDataObj = JSON.parse(decodedClientData);
+            console.log(clientDataObj);
+            $("#text1").append(clientDataObj);
+
+            const decodedAttestationObject = decode(new Uint8Array(e.response.attestationObject));
+            console.log(decodedAttestationObject);
+            $("#text1").append(decodedAttestationObject);
+
+
+            let authData = parseAuthData(decodedAttestationObject.authData);
+            console.log('AuthData: ', authData);
+            $("#text1").append(authData);
+
+            console.log('credentialId : ', Base64.encode(authData.credID));
+            console.log('publicKeyBytes  : ', Base64.encode(authData.COSEPublicKey));
+            console.log('AAGUID: ', Base64.encode(authData.aaguid));
+            console.log('PublicKey', decode(new Uint8Array(authData.COSEPublicKey.buffer)));
+            console.log('PublicKey', Base64.encode(authData.COSEPublicKey.buffer));
+
+            credentialId = authData.credID;
+        });
+    });
+
+    $("#target2").on("click", async function () {
+        const challenge = new Uint8Array(32);
+        window.crypto.getRandomValues(challenge);
+
+        const publicKeyCredentialRequestOptions = {
+            challenge,
+            allowCredentials: [{
+                id: credentialId, // from registration
+                type: 'public-key',
+                transports: ['internal'],
+            }],
+            timeout: 60000,
+        }
+
+        const assertion = await navigator.credentials.get({
+            publicKey: publicKeyCredentialRequestOptions
+        });
+
+        console.log(assertion);
+    });
+
+</script>
+
+</html>

@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加密貨幣卡交易計算機</title>
+
+    <meta property="og:title" content="加密貨幣卡交易計算機">
+    <meta property="og:description" content="精算持卡消費真實轉換成本，提供「成本回推」與「準備金試算」功能。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content=""> 
+    <!-- <meta property="og:image" content=""> -->
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- modern-screenshot (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/modern-screenshot/dist/index.js"></script>
+
+    <style>
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        .show-on-capture-block { display: none !important; }
+        .hidden-force { display: none !important; }
+        
+        .capture-mode .input-flex-wrapper {
+          border: none !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+        }
+        .capture-mode .input-flex-wrapper input {
+          border: none !important;
+          background: transparent !important;
+          outline: none !important;
+          appearance: none !important;
+        }
+        .capture-mode .input-flex-wrapper input { font-weight: 600; }
+        .capture-mode input { caret-color: transparent !important; }
+        .capture-mode {
+          border-radius: 0 !important;
+          box-shadow: none !important;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen p-4 flex justify-center items-start pt-8 pb-20 text-slate-800">
+
+<div id="capture-card-root" class="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+
+    <!-- Header -->
+    <div class="bg-blue-600 pt-6 pb-4 px-6 text-white">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <i data-lucide="calculator" class="w-6 h-6"></i>
+                <h1 class="text-xl font-bold tracking-tight">加密貨幣卡計算機</h1>
+            </div>
+
+            <!-- Currency Setting -->
+            <div class="flex items-center gap-2 hide-on-capture">
+                <label for="input-currency-code" class="text-xs font-bold text-blue-200 uppercase">計價幣別</label>
+                <input type="text" id="input-currency-code" value="TWD" maxlength="5"
+                       class="w-16 px-2 py-1 rounded bg-blue-700/50 border border-blue-400/30 text-white font-bold text-center text-sm uppercase outline-none focus:bg-blue-700 focus:border-white transition-colors placeholder-blue-300"
+                       placeholder="TWD">
+            </div>
+
+            <div class="hidden show-on-capture-block text-sm font-bold bg-blue-700/50 px-3 py-1.5 rounded-md">
+                幣別：<span class="currency-text">TWD</span>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between mb-2">
+            <p id="mode-desc" class="text-blue-100 text-sm opacity-90">計算：將消費反推為真實持有成本</p>
+
+            <!-- Mode Toggle Buttons -->
+            <div class="bg-blue-700/50 rounded-lg p-1 flex text-xs font-bold hide-on-capture shrink-0">
+                <button id="btn-mode-1" class="px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm">成本回推</button>
+                <button id="btn-mode-2" class="px-3 py-1.5 rounded-md transition-all text-blue-200">準備金試算</button>
+            </div>
+
+            <!-- Mode Label for Capture -->
+            <div id="capture-mode-label" class="hidden show-on-capture-block text-xs font-bold bg-blue-700/50 px-2 py-1 rounded-md">
+                模式：成本回推
+            </div>
+        </div>
+    </div>
+
+    <div class="p-6 flex flex-col gap-6">
+
+        <!-- Shared Link Notice -->
+        <div id="shared-link-notice" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-4 hide-on-capture flex items-start gap-3 shadow-sm">
+            <i data-lucide="bell-ring" class="w-5 h-5 text-blue-500 shrink-0 mt-0.5"></i>
+            <div class="flex-1">
+                <h3 class="text-sm font-bold text-blue-800">您正在檢視分享的試算結果</h3>
+                <p class="text-xs text-blue-600 mt-1 leading-relaxed">此畫面為他人建立的計算設定。編輯任一數值即可開始您的專屬計算，或點擊下方按鈕重新開始。</p>
+                <button id="btn-clear-shared" class="mt-3 px-3 py-1.5 bg-white border border-blue-200 text-blue-600 hover:text-blue-700 text-xs font-bold rounded-lg hover:bg-blue-100 transition-colors shadow-sm flex items-center gap-1.5">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> 清除並重新試算
+                </button>
+            </div>
+            <button id="btn-close-notice" class="text-blue-400 hover:text-blue-600 transition-colors p-1" title="關閉提示">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- INPUT GRID -->
+        <div id="input-container" class="grid grid-cols-2 gap-x-6 gap-y-4">
+
+            <!-- MODE 1 Inputs -->
+            <div class="mode-1-only space-y-1.5 col-span-2">
+                <div class="flex items-center justify-between h-5">
+                    <label class="text-xs font-bold text-slate-500 uppercase text-blue-600 whitespace-nowrap flex items-center h-5">實際刷卡金額</label>
+                    <button id="btn-toggle-fee-include" class="flex items-center gap-1 text-[9px] text-slate-500 hover:text-blue-600 transition-colors"
+                            title="切換：扣款金額是否已包含手續費">
+                        <i id="icon-fee-check" data-lucide="check-square" class="w-3 h-3 text-blue-500"></i>
+                        <span id="text-fee-check">費用內含國外交易手續費</span>
+                    </button>
+                </div>
+                <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
+                    <span class="prefix-label text-blue-400 font-bold shrink-0 text-[10px]">USD</span>
+                    <input type="number" step="any" id="input-usd-paid" placeholder="0.00"
+                           class="w-full bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
+                </div>
+            </div>
+
+            <!-- Credit Card Settings -->
+            <div id="card-settings-box" class="mode-1-only col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                    <i data-lucide="credit-card" class="w-4 h-4 text-blue-500"></i>
+                    <span>信用卡設定</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- 信用卡手續費 -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap">國外交易手續費</label>
+                        <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 h-[44px] bg-white">
+                            <input type="number" step="any" id="input-fee" placeholder="0"
+                                   class="w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full">
+                            <i data-lucide="percent" class="suffix-label w-4 h-4 text-slate-400 shrink-0"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- 信用卡回饋率 -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap">回饋率</label>
+                        <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 h-[44px] bg-white">
+                            <input type="number" step="any" id="input-d" placeholder="0"
+                                   class="w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full">
+                            <i data-lucide="percent" class="suffix-label w-4 h-4 text-slate-400 shrink-0"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode 1 Generic Currency Input -->
+            <div class="mode-1-only space-y-1.5 col-span-2">
+                <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center h-5">商品價格 (<span class="currency-text">TWD</span>)</label>
+                <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
+                    <span class="prefix-label currency-label text-slate-400 font-bold shrink-0 text-[10px]">TWD</span>
+                    <input type="number" step="any" id="input-val-m1" placeholder="0"
+                           class="w-full bg-transparent outline-none font-mono text-lg font-semibold h-full">
+                </div>
+            </div>
+
+            <!-- Mode 2 Convert Box -->
+            <div class="mode-2-only col-span-2 space-y-4 hidden-force">
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-3 block text-center whitespace-nowrap flex items-center justify-center h-5">金額換算</label>
+                    <div class="grid grid-cols-7 items-center gap-2">
+                        <div class="col-span-3 input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 bg-white h-[44px]">
+                            <span class="prefix-label text-slate-400 font-bold text-[10px] shrink-0 mr-1">USD</span>
+                            <input type="number" step="any" id="input-usd-convert" placeholder="0"
+                                   class="w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold text-right h-full">
+                        </div>
+                        <div class="col-span-1 flex justify-center text-slate-300"><i data-lucide="arrow-left-right" class="w-4 h-4"></i></div>
+                        <div class="col-span-3 input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 bg-white h-[44px]">
+                            <span class="prefix-label currency-label text-slate-400 font-bold text-[10px] shrink-0 mr-1">TWD</span>
+                            <input type="number" step="any" id="input-val-m2" placeholder="0"
+                                   class="w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold text-right h-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rates Grid -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center h-5 text-blue-600">交易所買入USD匯率</label>
+                <div class="input-flex-wrapper flex items-center border border-blue-200 bg-blue-50/50 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-blue-500 h-[44px]">
+                    <span class="prefix-label currency-label font-bold shrink-0 text-[10px] text-blue-400">TWD</span>
+                    <input type="number" step="any" id="input-ex-rate" placeholder="0"
+                           class="w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full text-blue-700">
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap flex items-center gap-1 h-5 text-red-600">
+                    信用卡結算USD匯率
+                </label>
+                <div id="wrapper-card-rate" class="input-flex-wrapper flex items-center border border-red-200 bg-red-50/50 rounded-lg px-3 py-2 gap-2 h-[44px]">
+                    <span class="prefix-label currency-label font-bold shrink-0 text-[10px] text-red-400">TWD</span>
+                    <input type="number" step="any" id="input-card-rate" placeholder="0"
+                           class="w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full text-red-700">
+                </div>
+                
+                <!-- 新增：反推匯率顯示區 -->
+                <div id="implied-rate-box" class="mode-1-only mt-1 text-[10px] text-slate-400 leading-snug">
+                  <div>
+                    反推匯率（含國外交易手續費）：
+                    <span id="res-implied-rate-effective" class="font-mono text-slate-600">-</span>
+                  </div>
+                  <div>
+                    反推匯率（不含國外交易手續費）：
+                    <span id="res-implied-rate-nofee" class="font-mono text-slate-600">-</span>
+                  </div>
+                </div>
+            </div>
+
+            <!-- 驗算差異塊 -->
+            <div id="block-verify" class="mode-1-only bg-slate-50 p-4 rounded-lg border border-slate-200 text-xs flex flex-col gap-1 col-span-2 hidden">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                    <i data-lucide="badge-dollar-sign" class="w-4 h-4 text-blue-500"></i>
+                    <span>刷卡金額驗證</span>
+                </div>
+                
+                <div class="flex justify-between mt-3">
+                    <span>實際基礎額</span>
+                    <span id="res-m1-base-actual" class="font-mono">$0.00</span>
+                </div>
+                <div class="text-[10px] text-slate-400 leading-snug">
+                    公式：<span id="formula-m1-base-actual" class="font-mono"></span>
+                </div>
+
+                <div class="flex justify-between mt-1">
+                    <span>估算交易額</span>
+                    <span id="res-m1-base-est" class="font-mono">$0.00</span>
+                </div>
+                <div class="text-[10px] text-slate-400 leading-snug">
+                    公式：<span id="formula-m1-base-est" class="font-mono"></span>
+                </div>
+
+                <div class="flex justify-between font-bold mt-1">
+                    <span>差異 (實際基礎額 - 估算交易額)</span>
+                    <span id="res-m1-delta" class="font-mono text-emerald-500">0.00 USD</span>
+                </div>
+            </div>
+
+            <div class="col-span-2 border-t border-slate-200 my-1 mode-1-only"></div>
+
+            <!-- Buffer (Mode 2 only) -->
+            <div class="mode-2-only space-y-1.5 col-span-2 hidden-force">
+                <label class="text-xs font-bold text-slate-500 uppercase flex items-center gap-1 whitespace-nowrap h-5">
+                    <i data-lucide="shield-check" class="w-3 h-3 text-emerald-500"></i> 安全緩衝 (Buffer)
+                </label>
+                <div class="input-flex-wrapper flex items-center border border-slate-300 rounded-lg px-3 py-2 gap-2 h-[44px]">
+                    <input type="number" step="any" id="input-buffer" value="2" placeholder="0"
+                           class="w-full min-w-0 bg-transparent outline-none font-mono text-lg font-semibold h-full">
+                    <i data-lucide="percent" class="suffix-label w-4 h-4 text-slate-400 shrink-0"></i>
+                </div>
+                <p class="text-[10px] text-slate-400 pl-1">預防匯差波動導致餘額不足，建議 2~5%</p>
+            </div>
+        </div>
+
+        <!-- FEES SECTION (Mode 1 Only) -->
+        <div id="section-fees" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+            <label class="text-xs font-bold text-slate-500 uppercase block whitespace-nowrap">額外雜費</label>
+            <div id="fee-list" class="space-y-2">
+                <div class="text-center py-4 text-slate-400 text-xs italic">尚無雜費項目</div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-200 hide-on-capture">
+                <input type="text" id="new-fee-name" placeholder="名稱" class="flex-1 w-full min-w-0 px-3 py-2 text-sm border border-slate-300 rounded-lg outline-none">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <input type="number" step="any" id="new-fee-amount" placeholder="0" class="flex-1 w-full min-w-0 sm:w-24 px-3 py-2 text-sm border border-slate-300 rounded-lg outline-none">
+                    <select id="new-fee-currency" class="px-2 py-2 text-sm border border-slate-300 rounded-lg bg-white outline-none shrink-0">
+                        <option value="USD">USD</option>
+                        <option value="home" class="currency-text">TWD</option>
+                    </select>
+                    <button id="btn-add-fee" class="flex items-center justify-center p-0 shrink-0 w-[38px] h-[38px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full h-px bg-slate-100 shrink-0"></div>
+
+        <!-- RESULTS SECTION -->
+
+        <!-- Mode 2 Results -->
+        <div id="result-mode-2" class="space-y-4 hidden-force">
+            <div class="flex items-start justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm min-h-[64px] gap-3">
+                <div class="flex flex-col min-w-0 flex-1">
+                    <span class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider truncate">目標購買金額</span>
+                    <span id="formula-m2-usd" class="text-[10px] text-orange-600 mt-1 opacity-70 leading-relaxed break-words">
+                        公式: 0 (金額) ÷ 1 (信用卡公告匯率)
+                    </span>
+                </div>
+                <span id="res-m2-usd-spend" class="text-2xl font-mono font-bold text-slate-800 shrink-0">$0.00</span>
+            </div>
+
+            <div class="flex justify-center -my-3 text-slate-300 relative z-10"><i data-lucide="arrow-down" class="w-5 h-5"></i></div>
+
+            <div class="p-5 bg-orange-50 rounded-2xl border border-orange-200 ring-4 ring-orange-50 min-h-[80px] flex flex-col gap-3">
+                <div class="flex justify-between items-start">
+                    <div class="flex flex-col gap-1 w-full min-w-0">
+                        <span class="text-sm text-orange-800 font-bold flex items-center gap-2 flex-wrap">最終：建議入金 <span class="currency-text">TWD</span></span>
+                        <span id="formula-m2-twd" class="text-xs text-orange-600 opacity-70 break-words leading-relaxed">
+                            公式: 0 USD (含 2% Buffer) × 交易所買入匯率 0
+                        </span>
+                    </div>
+                </div>
+                <div class="text-right border-t border-orange-200/50 pt-2 mt-1">
+                    <span class="currency-label font-mono font-bold text-orange-700 text-xl mr-1">TWD</span>
+                    <span id="res-m2-final-twd" class="text-3xl font-mono font-bold text-orange-700 font-bold truncate">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mode 1 Results -->
+        <div id="result-mode-1" class="space-y-4">
+            <!-- 實際扣款 USD -->
+            <div class="flex items-start justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm min-h-[64px] gap-3">
+                <div class="flex flex-col min-w-0 flex-1">
+                    <span class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider truncate">實際扣款 USD</span>
+                    <span id="formula-m1-billed" class="text-[10px] text-slate-400 break-words leading-relaxed">
+                        公式: 商品 ÷ 扣款匯率
+                    </span>
+                </div>
+                <div id="res-m1-billed-usd" class="text-2xl font-bold text-slate-700 font-mono shrink-0">$0.00</div>
+            </div>
+
+            <!-- 計算細項 -->
+            <div class="px-4 py-1 flex flex-col gap-2">
+                <div class="flex justify-between text-xs font-medium text-slate-500">
+                    <span id="label-m1-fee">+ 手續費 (0%)</span>
+                    <div class="flex items-center gap-1">
+                        <span id="label-m1-fee-calc" class="text-[9px] text-slate-400 hidden">(內含 $0.00)</span>
+                        <span id="res-m1-fee" class="font-mono text-red-500">+$0.00</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between text-xs font-medium text-slate-500">
+                    <span id="label-m1-cashback">- 信用卡回饋 (0%)</span>
+                    <span id="res-m1-cashback" class="font-mono text-emerald-500">-$0.00</span>
+                </div>
+
+                <div class="border-t border-dashed border-slate-200 my-1"></div>
+
+                <div class="flex justify-between text-xs font-medium text-slate-500">
+                    <span>= 總扣款 USD (應對餘額)</span>
+                    <span id="res-m1-total-deduct" class="font-mono text-slate-700 font-bold">$0.00</span>
+                </div>
+
+                <div id="row-extra-usd" class="flex justify-between text-xs font-medium text-slate-500 hidden">
+                    <span>+ 額外雜費總計</span>
+                    <span id="res-m1-extra-usd" class="font-mono text-red-500">+$0.00</span>
+                </div>
+            </div>
+
+            <!-- 最終台幣 -->
+            <div class="p-5 bg-slate-800 rounded-2xl shadow-xl text-white relative overflow-hidden min-h-[90px] flex flex-col gap-2">
+                <div class="relative z-10 flex flex-col min-w-0">
+                    <span class="text-sm font-bold opacity-80 flex-wrap">最終：實際總支出 (<span class="currency-text">TWD</span>)</span>
+                    <span id="formula-m1-final" class="text-xs opacity-50 break-words leading-relaxed">以交易所買入價 0 計算之持有成本</span>
+                </div>
+                <div class="relative z-10 text-right border-t border-white/10 pt-2">
+                    <span class="currency-label text-xl font-bold font-mono tracking-tight text-yellow-400 font-bold mr-1">TWD</span>
+                    <span id="res-m1-final-twd" class="text-3xl font-bold font-mono tracking-tight text-yellow-400 font-bold">0</span>
+                </div>
+            </div>
+
+            <!-- 效益分析 -->
+            <div id="analysis-box" class="analysis-box p-4 bg-white rounded-xl border border-slate-200 flex flex-col gap-3 shadow-sm">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2 text-sm font-bold text-slate-700">
+                        <i data-lucide="activity" class="w-4 h-4 text-blue-500"></i>
+                        <span>效益分析</span>
+                    </div>
+                    <div id="analysis-badge"></div>
+                </div>
+
+                <!-- 成本結構拆解 -->
+                <div id="decomp-box" class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-50 hidden">
+                    <div class="flex flex-col text-xs text-slate-500 gap-1">
+                        <span class="font-bold text-slate-700 mb-1">成本結構拆解</span>
+                        <div class="flex justify-between">
+                            <span>匯差損耗</span>
+                            <span id="res-decomp-fx" class="text-emerald-500">+0.0</span>
+                        </div>
+                        <div id="row-decomp-delta" class="flex justify-between hidden">
+                            <span>隱藏匯差/溢價</span>
+                            <span id="res-decomp-delta" class="text-red-500">+0.0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>手續費成本</span>
+                            <span id="res-decomp-fee" class="text-red-500">+0.0</span>
+                        </div>
+                        <div id="row-decomp-extra" class="flex justify-between hidden">
+                            <span>額外雜費</span>
+                            <span id="res-decomp-extra" class="text-red-500">+0.0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>回饋抵銷</span>
+                            <span id="res-decomp-cashback" class="text-emerald-500">-0.0</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col justify-end text-right border-l border-slate-100 pl-2">
+                        <div class="flex flex-col mb-2">
+                            <span class="text-[10px] text-slate-400 uppercase">標價匯率</span>
+                            <span id="res-implied-rate" class="text-sm font-mono font-bold text-slate-600">0.000</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-blue-400 uppercase font-bold">實質持有匯率</span>
+                            <span id="res-effective-rate" class="text-sm font-mono font-bold text-blue-600">0.000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="mt-2 flex flex-col gap-3 hide-on-capture">
+            <div class="flex gap-3">
+                <button id="btn-download" class="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 active:scale-95">
+                    <i data-lucide="download" class="w-4 h-4"></i> 下載結果圖
+                </button>
+                <button id="btn-copy-img" class="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 active:scale-95">
+                    <i id="icon-copy-img" data-lucide="copy" class="w-4 h-4"></i>
+                    <span id="text-copy-img">複製截圖</span>
+                </button>
+            </div>
+
+            <button id="btn-copy-link" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 py-3 rounded-xl text-sm font-bold transition-all border border-blue-200 active:scale-95">
+                <i id="icon-copy-link" data-lucide="share-2" class="w-4 h-4"></i>
+                <span id="text-copy-link">分享連結</span>
+            </button>
+        </div>
+
+    </div>
+
+    <div class="hidden show-on-capture-block text-center pb-4 pt-0 text-[10px] text-slate-300 bg-white border-t border-slate-50">
+        Created with Crypto Card Calculator • Multi-Currency Model
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // 停用 input[type=number] 的滑鼠滾輪修改數值行為
+    document.addEventListener('wheel', function() {
+        if (document.activeElement.type === 'number') {
+            document.activeElement.blur();
+        }
+    });
+
+    // --- State ---
+    let mode = 'twd_to_usd';
+    let feeItems = [];
+    let usdIncludesFee = true;
+    let currencyCode = 'TWD';
+    let isUrlSupported = window.location.protocol !== 'blob:';
+    let urlUpdateTimeout = null;
+
+    // --- Utilities ---
+    const parseNum = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+    const formatNum = (num, digits = 2) => {
+        const value = (num !== undefined && num !== null && !isNaN(num)) ? num : 0;
+        return value.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: 6 });
+    };
+    const cleanFloat = (num) => Math.round(num * 1000000) / 1000000;
+
+    // --- URL Params ---
+    function parseUrlParams() {
+        if (!isUrlSupported) return {};
+        const params = new URLSearchParams(window.location.search);
+        const getParam = (key) => params.get(key) || '';
+
+        let items = [];
+        try {
+            const itemsRaw = params.get('fi');
+            if (itemsRaw) {
+                try { items = JSON.parse(itemsRaw); }
+                catch { items = JSON.parse(decodeURIComponent(itemsRaw)); }
+            }
+        } catch (e) { console.error("解析雜費清單失敗", e); }
+
+        return {
+            'm': params.get('m') || 'twd_to_usd',
+            'iv': getParam('iv'),
+            'up': getParam('up'),
+            'ir': getParam('ir'),
+            'icr': getParam('icr'),
+            'id': getParam('id'),
+            'if': getParam('if'),
+            'bf': getParam('bf'),
+            'c': getParam('c') || 'TWD',
+            'uf': params.get('uf') !== '0',
+            'fi': items
+        };
+    }
+
+    // ==========================================
+    // 精準生成網址的獨立方法 (不受瀏覽器阻擋影響)
+    // ==========================================
+    function generateCurrentUrl() {
+        const params = new URLSearchParams();
+        params.set('m', mode);
+        params.set('c', currencyCode);
+
+        const inputValue = mode === 'twd_to_usd' ? $('#input-val-m1').val() : $('#input-val-m2').val();
+        if (inputValue) params.set('iv', inputValue);
+
+        const up = $('#input-usd-paid').val();
+        if (up) params.set('up', up);
+
+        const ir = $('#input-ex-rate').val();
+        if (ir) params.set('ir', ir);
+
+        const icr = $('#input-card-rate').val();
+        if (icr) params.set('icr', icr);
+
+        const idVal = $('#input-d').val();
+        if (idVal !== '') params.set('id', idVal);
+
+        const feeVal = $('#input-fee').val();
+        if (feeVal !== '') params.set('if', feeVal);
+
+        const bf = $('#input-buffer').val();
+        if (bf !== '') params.set('bf', bf);
+
+        params.set('uf', usdIncludesFee ? '1' : '0');
+        if (feeItems.length > 0) params.set('fi', JSON.stringify(feeItems));
+
+        const origin = window.location.origin !== 'null' ? window.location.origin : '';
+        return `${origin}${window.location.pathname}?${params.toString()}`;
+    }
+
+    // ==========================================
+    // 加入 Debounce 防抖，防止連續觸發 history.replaceState 被瀏覽器禁用
+    // ==========================================
+    function updateUrl() {
+        if (!isUrlSupported) return;
+        
+        clearTimeout(urlUpdateTimeout);
+        urlUpdateTimeout = setTimeout(() => {
+            try {
+                window.history.replaceState(null, '', generateCurrentUrl());
+            } catch (e) {
+			
+            }
+        }, 300);
+    }
+
+    // ==========================================
+    // 取得參數後立刻判斷分享提示顯示邏輯
+    // ==========================================
+    const initParams = parseUrlParams();
+    
+    if (initParams.iv || initParams.up || initParams.ir || initParams.icr) {
+        $('#shared-link-notice').removeClass('hidden');
+    }
+
+    $('#btn-close-notice').click(function() {
+        $('#shared-link-notice').slideUp(200);
+    });
+    
+    // 清除按鈕邏輯
+    $('#btn-clear-shared').click(function() {
+        $('#input-usd-paid, #input-val-m1, #input-usd-convert, #input-val-m2, #input-ex-rate, #input-card-rate, #input-d, #input-fee').val('');
+        $('#input-buffer').val('2');
+        
+        feeItems = [];
+        usdIncludesFee = true;
+        
+        renderFeeList();
+        renderFeeCheck();
+        
+        if (isUrlSupported) {
+            const newUrl = window.location.pathname;
+            window.history.replaceState(null, '', newUrl);
+        }
+        
+        calculate();
+        $('#shared-link-notice').slideUp(200);
+    });
+
+    function hideSharedNoticeOnEdit() {
+        if (!$('#shared-link-notice').hasClass('hidden') && $('#shared-link-notice').is(':visible')) {
+            $('#shared-link-notice').slideUp(200);
+        }
+    }
+
+    // --- UI Updates ---
+    function updateCurrencyUI() {
+        const code = currencyCode.toUpperCase();
+        $('.currency-label').text(code);
+        $('.currency-text').text(code);
+        $('#input-currency-code').val(code);
+        calculate();
+    }
+
+    function toggleMode(newMode) {
+        mode = newMode;
+        if (mode === 'twd_to_usd') {
+            $('#btn-mode-1').addClass('bg-white text-blue-600 shadow-sm').removeClass('text-blue-200');
+            $('#btn-mode-2').addClass('text-blue-200').removeClass('bg-white text-blue-600 shadow-sm');
+            $('#capture-mode-label').text('模式：成本回推');
+            $('#mode-desc').text('計算：將消費反推為真實持有成本');
+
+            $('.mode-1-only').removeClass('hidden-force');
+            $('.mode-2-only').addClass('hidden-force');
+            $('#section-fees').show();
+
+            $('#result-mode-1').removeClass('hidden-force').show();
+            $('#result-mode-2').addClass('hidden-force').hide();
+        } else {
+            $('#btn-mode-2').addClass('bg-white text-blue-600 shadow-sm').removeClass('text-blue-200');
+            $('#btn-mode-1').addClass('text-blue-200').removeClass('bg-white text-blue-600 shadow-sm');
+            $('#capture-mode-label').text('模式：準備金試算');
+            $('#mode-desc').text('計算：要購買USD所需的入金' + currencyCode);
+
+            $('.mode-2-only').removeClass('hidden-force');
+            $('.mode-1-only').addClass('hidden-force');
+            $('#section-fees').hide();
+
+            $('#result-mode-1').addClass('hidden-force').hide();
+            $('#result-mode-2').removeClass('hidden-force').show();
+        }
+        calculate();
+    }
+
+    function renderFeeList() {
+        const list = $('#fee-list');
+        list.empty();
+        if (feeItems.length === 0) {
+            list.html('<div class="text-center py-4 text-slate-400 text-xs italic">尚無雜費項目</div>');
+        } else {
+            feeItems.forEach(item => {
+                const displayCurr = item.currency === 'home' ? currencyCode : item.currency;
+                const html = `
+                    <div class="fee-item-container flex items-center gap-2 bg-white p-3 rounded-lg border border-slate-200 shadow-sm min-h-[44px]">
+                        <div class="flex-1 text-sm font-medium text-slate-700 truncate">${item.name}</div>
+                        <div class="font-mono text-sm font-bold text-slate-600 shrink-0">${formatNum(item.amount)} ${displayCurr}</div>
+                        <button data-id="${item.id}" class="btn-delete-fee p-1 text-slate-300 hover:text-red-500 hide-on-capture"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `;
+                list.append(html);
+            });
+            lucide.createIcons();
+        }
+        calculate();
+    }
+
+    function renderFeeCheck() {
+        if (usdIncludesFee) {
+            $('#icon-fee-check').replaceWith('<i id="icon-fee-check" data-lucide="check-square" class="w-3 h-3 text-blue-500"></i>');
+        } else {
+            $('#icon-fee-check').replaceWith('<i id="icon-fee-check" data-lucide="square" class="w-3 h-3"></i>');
+        }
+        lucide.createIcons();
+        calculate();
+    }
+
+    // --- Calculation ---
+    function calculate() {
+        const inputValueStr = mode === 'twd_to_usd' ? $('#input-val-m1').val() : $('#input-val-m2').val();
+        const val = parseNum(inputValueStr);
+        const exBuyRate = parseNum($('#input-ex-rate').val());
+        const inputCardRateVal = $('#input-card-rate').val();
+        const cardSellRate = parseNum(inputCardRateVal) || exBuyRate || 1;
+        const usdPaidInput = parseNum($('#input-usd-paid').val());
+        const hasUsdInput = usdPaidInput > 0;
+
+        const dPct = parseNum($('#input-d').val());
+        const feePct = parseNum($('#input-fee').val());
+        const bufferPct = parseNum($('#input-buffer').val());
+
+        const extraUSD = feeItems.filter(i => i.currency === 'USD').reduce((acc, i) => acc + parseNum(i.amount), 0);
+        const extraHome = feeItems.filter(i => i.currency === 'home' || i.currency === 'TWD').reduce((acc, i) => acc + parseNum(i.amount), 0);
+
+        // ===== Reverse implied card rate =====
+        let impliedRateEffective = 0;
+        let impliedRateNoFee = 0;
+
+        if (mode === 'twd_to_usd') {
+            const price = val;              // 商品價格 (本幣)
+            const usdPaid = usdPaidInput;   // 實際刷卡 USD
+
+            if (price > 0 && usdPaid > 0) {
+                // 1️⃣ 含費有效匯率
+                impliedRateEffective = price / usdPaid;
+
+                // 2️⃣ 不含費匯率
+                let baseUsd = usdPaid;
+
+                if (usdIncludesFee && feePct > 0) {
+                    baseUsd = usdPaid / (1 + feePct / 100);
+                }
+
+                impliedRateNoFee = baseUsd > 0 ? (price / baseUsd) : 0;
+            }
+        }
+
+        if (mode === 'twd_to_usd') {
+            const step1_displayUSD = hasUsdInput ? usdPaidInput : (val / cardSellRate);
+
+            let cashbackBase = 0;
+            let feesValue = 0;
+            let ui_fee_add = 0;
+
+            if (hasUsdInput) {
+                if (usdIncludesFee) {
+                    cashbackBase = usdPaidInput / (1 + feePct/100);
+                    feesValue = usdPaidInput - cashbackBase;
+                    ui_fee_add = 0;
+                } else {
+                    cashbackBase = usdPaidInput;
+                    feesValue = usdPaidInput * (feePct / 100);
+                    ui_fee_add = feesValue;
+                }
+            } else {
+                cashbackBase = (val / cardSellRate);
+                feesValue = cashbackBase * (feePct / 100);
+                ui_fee_add = feesValue;
+            }
+
+            const cashback = cashbackBase * (dPct / 100);
+            
+            const extraHomeUSD = exBuyRate > 0 ? extraHome / exBuyRate : 0;
+            const extraTotalUSD = extraUSD + extraHomeUSD;
+            const totalDeductUSD = step1_displayUSD + ui_fee_add - cashback;
+            const finalTwdCost = (totalDeductUSD + extraTotalUSD) * exBuyRate;
+            const rateBaseUSD = cashbackBase > 0 ? cashbackBase : step1_displayUSD;
+            const impliedRate = rateBaseUSD > 0 ? val / rateBaseUSD : 0;
+            const effectiveRate = rateBaseUSD > 0 ? finalTwdCost / rateBaseUSD : 0;
+
+            // Verify
+            const baseUSD_est = (val > 0 && cardSellRate > 0) ? (val / cardSellRate) : 0;
+            const deltaUSD = hasUsdInput ? (cashbackBase - baseUSD_est) : 0;
+            
+            let formulaBaseActual = '';
+            if (hasUsdInput) {
+              if (usdIncludesFee) {
+                formulaBaseActual = `${formatNum(usdPaidInput)} ÷ (1 + ${formatNum(feePct)}%)`;
+              } else {
+                formulaBaseActual = `${formatNum(usdPaidInput)}`;
+              }
+            } else {
+              formulaBaseActual = `${formatNum(val, 0)} ÷ ${formatNum(cardSellRate)}`;
+            }
+            
+            const formulaBaseEst = `${formatNum(val, 0)} ÷ ${formatNum(cardSellRate)}`;
+
+            if (hasUsdInput && cardSellRate > 0 && val > 0) {
+                $('#block-verify').removeClass('hidden');
+                $('#res-m1-base-actual').text('$' + formatNum(cashbackBase));
+                $('#res-m1-base-est').text('$' + formatNum(baseUSD_est));
+            
+                $('#formula-m1-base-actual').text(formulaBaseActual);
+                $('#formula-m1-base-est').text(formulaBaseEst);
+            
+                const deltaSign = deltaUSD > 0 ? '+' : '';
+                const deltaColor = deltaUSD > 0 ? 'text-red-500' : 'text-emerald-500';
+                $('#res-m1-delta').text(`${deltaSign}${formatNum(deltaUSD)} USD`).attr('class', `font-mono ${deltaColor}`);
+            } else {
+                $('#block-verify').addClass('hidden');
+                $('#formula-m1-base-actual').text('');
+                $('#formula-m1-base-est').text('');
+            }
+
+            $('#formula-m1-billed').text(hasUsdInput ? '依據實際輸入' : `公式: 商品價格 ÷ 信用卡公告匯率 ${formatNum(cardSellRate)}`);
+            $('#res-m1-billed-usd').text('$' + formatNum(step1_displayUSD));
+
+            $('#label-m1-fee').text(`+ 手續費 (${hasUsdInput && usdIncludesFee ? "已內含" : formatNum(feePct)+"%"})`).toggleClass('text-slate-400', hasUsdInput && usdIncludesFee);
+
+            if (hasUsdInput && usdIncludesFee) {
+                $('#label-m1-fee-calc').text(`(內含 $${formatNum(feesValue)})`).removeClass('hidden');
+                $('#res-m1-fee').text(`+$${formatNum(ui_fee_add)}`).removeClass('text-red-500').addClass('text-slate-400').addClass('line-through');
+            } else {
+                $('#label-m1-fee-calc').addClass('hidden');
+                $('#res-m1-fee').text(`+$${formatNum(ui_fee_add)}`).removeClass('text-slate-400').removeClass('line-through').addClass('text-red-500');
+            }
+
+            $('#label-m1-cashback').text(`- 信用卡回饋 (${formatNum(dPct)}%)`);
+            $('#res-m1-cashback').text('-$' + formatNum(cashback));
+            $('#res-m1-total-deduct').text('$' + formatNum(totalDeductUSD));
+
+            if (extraTotalUSD > 0) {
+                $('#row-extra-usd').removeClass('hidden');
+                $('#res-m1-extra-usd').text('+$' + formatNum(extraTotalUSD));
+            } else {
+                $('#row-extra-usd').addClass('hidden');
+            }
+
+            $('#formula-m1-final').text(`以交易所買入價 ${formatNum(exBuyRate)} 計算之持有成本`);
+            $('#res-m1-final-twd').text(formatNum(finalTwdCost, 0));
+
+            // Analysis Badge
+            const diff = val - finalTwdCost;
+            const absDiff = Math.abs(diff);
+            let badgeHtml = '';
+            if (absDiff < 1) {
+                badgeHtml = '<span class="analysis-badge px-2 rounded text-xs font-bold bg-slate-100 text-slate-600 inline-flex items-center gap-1 leading-none h-7"><i data-lucide="minus-circle" class="w-3 h-3"></i> 持平</span>';
+            } else if (diff > 0) {
+                badgeHtml = `<span class="analysis-badge px-2 rounded text-xs font-bold bg-emerald-100 text-emerald-700 inline-flex items-center gap-1 leading-none h-7"><i data-lucide="trending-down" class="w-3 h-3"></i> 節省 ${formatNum(absDiff)} ${currencyCode}</span>`;
+            } else {
+                badgeHtml = `<span class="analysis-badge px-2 rounded text-xs font-bold bg-red-100 text-red-700 inline-flex items-center gap-1 leading-none h-7"><i data-lucide="trending-up" class="w-3 h-3"></i> 多付 ${formatNum(absDiff)} ${currencyCode}</span>`;
+            }
+            $('#analysis-badge').html(badgeHtml);
+            
+            const baseUSD_forDecomp = (val > 0 && cardSellRate > 0) ? (val / cardSellRate) : 0;
+            const fxDiffTwd = baseUSD_forDecomp * (exBuyRate - cardSellRate);
+            const deltaTwd = deltaUSD * exBuyRate;
+            const feeTwd = feesValue * exBuyRate;
+            const cashbackTwd = cashback * exBuyRate;
+            const extraTwd = extraTotalUSD * exBuyRate;
+
+            if (baseUSD_forDecomp > 0 && exBuyRate > 0 && cardSellRate > 0) {
+                $('#decomp-box').removeClass('hidden');
+
+                const fxSign = fxDiffTwd > 0 ? '+' : '';
+                const fxClass = fxDiffTwd > 0 ? 'text-red-500' : 'text-emerald-500';
+                
+                $('#res-decomp-fx').text(`${fxSign}${formatNum(fxDiffTwd, 1)}`).attr('class', fxClass);
+                
+                if (Math.abs(deltaUSD) > 0.001) {
+                    $('#row-decomp-delta').removeClass('hidden');
+                    const deltaSign = deltaTwd > 0 ? '+' : '';
+                    const deltaClass = deltaTwd > 0 ? 'text-red-500' : 'text-emerald-500';
+                    $('#res-decomp-delta').text(`${deltaSign}${formatNum(deltaTwd, 1)}`).attr('class', deltaClass);
+                } else {
+                    $('#row-decomp-delta').addClass('hidden');
+                }
+
+                $('#res-decomp-fee').text('+' + formatNum(feeTwd, 1)).attr('class', 'text-red-500');
+                
+                if (extraTotalUSD > 0) {
+                    $('#row-decomp-extra').removeClass('hidden');
+                    $('#res-decomp-extra').text('+' + formatNum(extraTwd, 1)).attr('class', 'text-red-500');
+                } else {
+                    $('#row-decomp-extra').addClass('hidden');
+                }
+                
+                $('#res-decomp-cashback').text('-' + formatNum(cashbackTwd, 1)).attr('class', 'text-emerald-500');
+                $('#res-implied-rate').text(formatNum(impliedRate, 3));
+                $('#res-effective-rate').text(formatNum(effectiveRate, 3));
+            } else {
+                $('#decomp-box').addClass('hidden');
+            }
+
+        } else {
+            const usdToSpend = val / cardSellRate;
+            const usdWithFee = usdToSpend * (1 + feePct/100);
+            const cryptoNeeded = usdWithFee * (1 + bufferPct/100);
+            const twdNeeded = cryptoNeeded * exBuyRate;
+
+            $('#formula-m2-usd').text(`公式: ${formatNum(val)} (金額) ÷ ${formatNum(cardSellRate)} (信用卡公告匯率)`);
+            $('#res-m2-usd-spend').text('$' + formatNum(usdToSpend));
+
+            $('#formula-m2-twd').text(`公式: ${formatNum(cryptoNeeded)} USD (含 ${formatNum(bufferPct)}% Buffer) × 交易所買入匯率 ${formatNum(exBuyRate)}`);
+            $('#res-m2-final-twd').text(formatNum(twdNeeded, 0));
+        }
+
+        // ===== Update implied rate display =====
+        if (impliedRateEffective > 0) {
+          $('#res-implied-rate-effective').text(formatNum(impliedRateEffective, 6));
+        } else {
+          $('#res-implied-rate-effective').text('-');
+        }
+
+        if (impliedRateNoFee > 0) {
+          $('#res-implied-rate-nofee').text(formatNum(impliedRateNoFee, 6));
+        } else {
+          $('#res-implied-rate-nofee').text('-');
+        }
+
+        lucide.createIcons();
+        updateUrl();
+    }
+
+    // --- Init Variables ---
+    if (initParams['m']) mode = initParams['m'];
+    if (initParams['fi']) feeItems = initParams['fi'];
+    if (initParams['uf'] !== undefined) usdIncludesFee = initParams['uf'];
+    if (initParams['c']) currencyCode = initParams['c'].toUpperCase();
+
+    if (initParams['iv']) {
+        $('#input-val-m1').val(initParams['iv']);
+        $('#input-val-m2').val(initParams['iv']);
+        const rate = parseNum(initParams['icr']) || parseNum(initParams['ir']) || 1;
+        $('#input-usd-convert').val(cleanFloat(parseNum(initParams['iv']) / rate));
+    }
+    
+    if (initParams['up']) $('#input-usd-paid').val(initParams['up']);
+    if (initParams['ir']) $('#input-ex-rate').val(initParams['ir']);
+    if (initParams['icr']) $('#input-card-rate').val(initParams['icr']);
+    if (initParams['id']) $('#input-d').val(initParams['id']);
+    if (initParams['if']) $('#input-fee').val(initParams['if']);
+    if (initParams['bf']) $('#input-buffer').val(initParams['bf']);
+
+    updateCurrencyUI();
+    renderFeeList();
+    renderFeeCheck();
+    toggleMode(mode);
+
+    // Inputs change
+    $('input').on('input', function() {
+        hideSharedNoticeOnEdit();
+
+        if (this.id === 'input-currency-code') {
+            currencyCode = $(this).val().toUpperCase();
+            $('.currency-label').text(currencyCode);
+            $('.currency-text').text(currencyCode);
+        }
+
+        const cardSellRate = parseNum($('#input-card-rate').val()) || parseNum($('#input-ex-rate').val()) || 1;
+
+        if (this.id === 'input-val-m1') {
+            $('#input-val-m2').val($(this).val());
+            const twdVal = parseNum($(this).val());
+            $('#input-usd-convert').val(twdVal > 0 ? cleanFloat(twdVal / cardSellRate) : '');
+        } else if (this.id === 'input-val-m2') {
+            $('#input-val-m1').val($(this).val());
+            const twdVal = parseNum($(this).val());
+            $('#input-usd-convert').val(twdVal > 0 ? cleanFloat(twdVal / cardSellRate) : '');
+        } else if (this.id === 'input-usd-convert') {
+            const usdVal = parseNum($(this).val());
+            const twdVal = usdVal > 0 ? cleanFloat(usdVal * cardSellRate) : '';
+            $('#input-val-m2').val(twdVal);
+            $('#input-val-m1').val(twdVal);
+        } else if (this.id === 'input-card-rate' || this.id === 'input-ex-rate') {
+            if (mode === 'usd_to_twd') {
+                const currentUsd = parseNum($('#input-usd-convert').val());
+                if (currentUsd > 0) {
+                    const twdVal = cleanFloat(currentUsd * cardSellRate);
+                    $('#input-val-m2').val(twdVal);
+                    $('#input-val-m1').val(twdVal);
+                }
+            } else {
+                const currentTwd = parseNum($('#input-val-m1').val());
+                if (currentTwd > 0) {
+                    $('#input-usd-convert').val(cleanFloat(currentTwd / cardSellRate));
+                }
+            }
+        }
+
+        calculate();
+    });
+
+    $('#btn-mode-1').click(() => {
+        hideSharedNoticeOnEdit();
+        toggleMode('twd_to_usd');
+    });
+    
+    $('#btn-mode-2').click(() => {
+        hideSharedNoticeOnEdit();
+        toggleMode('usd_to_twd');
+    });
+
+    $('#btn-toggle-fee-include').click(() => {
+        hideSharedNoticeOnEdit();
+        usdIncludesFee = !usdIncludesFee;
+        renderFeeCheck();
+    });
+
+    $('#btn-add-fee').click(() => {
+        hideSharedNoticeOnEdit();
+        const name = $('#new-fee-name').val();
+        const amount = $('#new-fee-amount').val();
+        const currency = $('#new-fee-currency').val();
+        if (!amount) return;
+        feeItems.push({ id: Date.now(), name: name || '雜費', amount: parseNum(amount), currency: currency });
+        $('#new-fee-name').val('');
+        $('#new-fee-amount').val('');
+        renderFeeList();
+    });
+
+    $(document).on('click', '.btn-delete-fee', function() {
+        hideSharedNoticeOnEdit();
+        const id = $(this).data('id');
+        feeItems = feeItems.filter(f => f.id !== id);
+        renderFeeList();
+    });
+
+
+    if (window.location.protocol === 'blob:') $('#btn-copy-link').hide();
+    
+    $('#btn-copy-link').click(async function() {
+        const url = isUrlSupported ? generateCurrentUrl() : window.location.href;
+        
+        const modeText = mode === 'twd_to_usd' ? '成本回推' : '準備金試算';
+        const itemVal = mode === 'twd_to_usd' ? $('#input-val-m1').val() : $('#input-val-m2').val();
+        const priceInfo = itemVal ? ` (商品價值：${itemVal} ${currencyCode})` : '';
+        const shareText = `📊 加密貨幣卡計算機 (${modeText})${priceInfo}\n\n我剛計算了一筆交易，點擊連結查看詳細的持卡成本與效益分析：\n${url}`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: '加密貨幣卡交易計算機',
+                    text: `我剛算了一筆交易 (${modeText})，點擊查看詳細結果：`,
+                    url: url
+                });
+                return;
+            } catch (err) {
+                console.log('使用者取消原生分享或分享失敗，使用複製功能', err);
+            }
+        }
+
+        const textArea = document.createElement("textarea");
+        textArea.value = shareText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            $('#icon-copy-link').replaceWith('<i id="icon-copy-link" data-lucide="check" class="w-4 h-4"></i>');
+            $('#text-copy-link').text('文字與連結已複製！');
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                $('#icon-copy-link').replaceWith('<i id="icon-copy-link" data-lucide="share-2" class="w-4 h-4"></i>');
+                $('#text-copy-link').text('分享連結');
+                lucide.createIcons();
+            }, 2500);
+        } catch(e){
+            console.error('複製失敗', e);
+        }
+        document.body.removeChild(textArea);
+    });
+
+    // =========================
+    // modern-screenshot Capture
+    // =========================
+    async function handleCapture(action) {
+      const card = document.getElementById('capture-card-root');
+      if (!card) return;
+
+      try {
+        await document.fonts.ready;
+          
+        card.classList.add('capture-mode');
+          
+        const dataUrl = await modernScreenshot.domToPng(card, {
+          backgroundColor: '#ffffff',
+          scale: 3,
+          filter: (n) => !(n.classList && n.classList.contains('hide-on-capture'))
+        });
+
+        if (action === 'download') {
+          const a = document.createElement('a');
+          a.download = `crypto-card-report-${Date.now()}.png`;
+          a.href = dataUrl;
+          a.click();
+        } else {
+          const blob = await (await fetch(dataUrl)).blob();
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        }
+
+      } catch (e) {
+        console.error(e);
+      } finally {
+        card.classList.remove('capture-mode');
+      }
+    }
+
+
+    $('#btn-download').click(() => handleCapture('download'));
+    $('#btn-copy-img').click(() => handleCapture('copy'));
+    
+    if (typeof ClipboardItem !== 'undefined' && !!navigator.clipboard && !!navigator.clipboard.write && window.location.protocol !== 'blob:') {
+        // supported
+    } else {
+        $('#btn-copy-img').prop('disabled', true).addClass('opacity-50');
+    }
+
+    // Initial
+    calculate();
+});
+</script>
+
+</body>
+</html>
